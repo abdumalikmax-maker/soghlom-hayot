@@ -1,7 +1,13 @@
-import { useState, useEffect } from "react";
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { useState, useEffect, useRef } from "react";
+import { initializeApp } from "firebase/app";
+import {
+  getAuth,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  signOut,
+  onAuthStateChanged,
+} from "firebase/auth";
+import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 
 // ── FIREBASE CONFIG ──────────────────────────────────────────────────────────
 const firebaseConfig = {
@@ -13,6 +19,10 @@ const firebaseConfig = {
   appId: "1:321253021051:web:7d0ae7663973c1d980d9de",
   measurementId: "G-DSLDGCZ75H"
 };
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
 const PR="#1B4332",AC="#52B788",AM="#E9A825",CR="#F8F4EF",CH="#1C1C1E",MU="#6B7280",SU="#FFFFFF",LI="#E8F5EE",DA="#DC2626";
 const GOALS=["Ozish","Semirish","Vazn saqlash","Mushak yig'ish","Sog'lomlashtirish"];
@@ -189,7 +199,7 @@ function NafasTab(){
   const [bosqich,setBosqich]=useState(0);
   const [hisoblagich,setHisoblagich]=useState(0);
   const [sikl,setSikl]=useState(0);
-  const timerRef={current:null};
+  const timerRef=useRef(null);
   const NAFAS=[{nom:"Nafas oling",davom:4,rang:"#0EA5E9",emoji:"🌬️"},{nom:"Ushlab turing",davom:4,rang:"#7C3AED",emoji:"🔒"},{nom:"Chiqaring",davom:6,rang:"#10B981",emoji:"💨"}];
   const boshlash=()=>{
     setHolat("ishlaydi");setBosqich(0);setHisoblagich(NAFAS[0].davom);setSikl(0);
@@ -294,205 +304,277 @@ const MASLAHATLAR=[
   {emoji:"💧",matn:"Miyangiz 75% suvdan iborat — har soatda suv iching."},
 ];
 
+// ── PHONE OTP LOGIN ──────────────────────────────────────────────────────────
+function PhoneLogin({ onSuccess }) {
+  const [phone, setPhone] = useState("+998");
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState("phone"); // phone | otp
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
+  const confirmRef = useRef(null);
+
+  const sendOtp = async () => {
+    setLoading(true); setErr("");
+    try {
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+          size: "invisible",
+          callback: () => {},
+        });
+      }
+      const confirmation = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
+      confirmRef.current = confirmation;
+      setStep("otp");
+    } catch (e) {
+      setErr("Telefon raqam noto'g'ri yoki xatolik yuz berdi");
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear();
+        window.recaptchaVerifier = null;
+      }
+    }
+    setLoading(false);
+  };
+
+  const verifyOtp = async () => {
+    setLoading(true); setErr("");
+    try {
+      const result = await confirmRef.current.confirm(otp);
+      onSuccess(result.user);
+    } catch (e) {
+      setErr("Kod noto'g'ri, qayta urinib ko'ring");
+    }
+    setLoading(false);
+  };
+
+  const inp = {
+    width: "100%", padding: "13px 14px", borderRadius: 10,
+    border: "1.5px solid #E5E7EB", fontSize: 16, color: CH,
+    background: CR, outline: "none", boxSizing: "border-box", marginBottom: 10
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: CR, fontFamily: "system-ui,-apple-system,sans-serif" }}>
+      <div style={{ background: PR, padding: "40px 20px 30px", textAlign: "center" }}>
+        <div style={{ fontSize: 48, marginBottom: 10 }}>🌿</div>
+        <div style={{ color: "#fff", fontWeight: 800, fontSize: 24 }}>Sog'lom Hayot</div>
+        <div style={{ color: AC, fontSize: 13, marginTop: 6 }}>30 kunlik sog'lom hayot dasturi</div>
+      </div>
+
+      <div style={{ maxWidth: 400, margin: "0 auto", padding: "30px 20px" }}>
+        <div style={{ background: SU, borderRadius: 18, padding: 24, boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
+
+          {step === "phone" && (
+            <>
+              <div style={{ fontWeight: 800, fontSize: 20, color: PR, marginBottom: 6, textAlign: "center" }}>Kirish</div>
+              <div style={{ fontSize: 13, color: MU, textAlign: "center", marginBottom: 20 }}>
+                Telefon raqamingizga SMS kod yuboramiz
+              </div>
+              {err && (
+                <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 9, padding: "10px 13px", color: DA, fontSize: 13, marginBottom: 12 }}>
+                  {err}
+                </div>
+              )}
+              <div style={{ fontSize: 13, fontWeight: 600, color: CH, marginBottom: 6 }}>📱 Telefon raqam</div>
+              <input
+                style={inp}
+                type="tel"
+                placeholder="+998 90 123 45 67"
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+              />
+              <div id="recaptcha-container" />
+              <button
+                onClick={sendOtp}
+                disabled={loading}
+                style={{
+                  width: "100%", padding: "14px", borderRadius: 12, border: "none",
+                  background: "linear-gradient(135deg," + PR + "," + AC + ")",
+                  color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer",
+                  boxShadow: "0 4px 14px rgba(27,67,50,0.3)"
+                }}
+              >
+                {loading ? "Yuborilmoqda..." : "📨 SMS Kod Yuborish"}
+              </button>
+            </>
+          )}
+
+          {step === "otp" && (
+            <>
+              <div style={{ fontWeight: 800, fontSize: 20, color: PR, marginBottom: 6, textAlign: "center" }}>SMS Kodni Kiriting</div>
+              <div style={{ fontSize: 13, color: MU, textAlign: "center", marginBottom: 20 }}>
+                {phone} raqamiga 6 raqamli kod yuborildi
+              </div>
+              {err && (
+                <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 9, padding: "10px 13px", color: DA, fontSize: 13, marginBottom: 12 }}>
+                  {err}
+                </div>
+              )}
+              <input
+                style={{ ...inp, fontSize: 24, textAlign: "center", letterSpacing: 8, fontWeight: 700 }}
+                type="number"
+                placeholder="123456"
+                value={otp}
+                onChange={e => setOtp(e.target.value)}
+                maxLength={6}
+              />
+              <button
+                onClick={verifyOtp}
+                disabled={loading || otp.length < 6}
+                style={{
+                  width: "100%", padding: "14px", borderRadius: 12, border: "none",
+                  background: otp.length >= 6 ? "linear-gradient(135deg," + PR + "," + AC + ")" : "#E5E7EB",
+                  color: otp.length >= 6 ? "#fff" : MU, fontSize: 16, fontWeight: 700,
+                  cursor: otp.length >= 6 ? "pointer" : "default",
+                  marginBottom: 10
+                }}
+              >
+                {loading ? "Tekshirilmoqda..." : "✅ Tasdiqlash"}
+              </button>
+              <button
+                onClick={() => { setStep("phone"); setErr(""); setOtp(""); }}
+                style={{ width: "100%", padding: "10px", borderRadius: 10, border: "1px solid #E5E7EB", background: "transparent", color: MU, fontSize: 14, cursor: "pointer" }}
+              >
+                ← Orqaga
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── ASOSIY ILOVA ──────────────────────────────────────────────────────────────
-export default function App(){
-  const [screen,setScreen]=useState("login"); // login | register | profile | main
-  const [user,setUser]=useState(null);
-  const [profile,setProfile]=useState(null);
-  const [authLoading,setAuthLoading]=useState(false);
-  const [authErr,setAuthErr]=useState("");
+export default function App() {
+  const [screen, setScreen] = useState("login"); // login | profile | main
+  const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authErr, setAuthErr] = useState("");
+  const [appLoading, setAppLoading] = useState(true);
 
-  // Login form
-  const [email,setEmail]=useState("");
-  const [password,setPassword]=useState("");
-
-  // Register form
-  const [regEmail,setRegEmail]=useState("");
-  const [regPassword,setRegPassword]=useState("");
-  const [regName,setRegName]=useState("");
-
-  // Profile form
-  const [profForm,setProfForm]=useState({
-    ism:"",jins:"Erkak",yosh:"",boy:"",vazn:"",bel:"",
-    faollik:ACT_L[1],maqsad:"Ozish",
-    oshqozon:false,diabet:false,uyqusizlik:false,
+  const [profForm, setProfForm] = useState({
+    ism: "", jins: "Erkak", yosh: "", boy: "", vazn: "", bel: "",
+    faollik: ACT_L[1], maqsad: "Ozish",
+    oshqozon: false, diabet: false, uyqusizlik: false,
   });
 
-  // Main app state
-  const [hafta,setHafta]=useState(0);
-  const [tab,setTab]=useState("ratsion");
-  const [maslahatIdx,setMaslahatIdx]=useState(0);
-  const [oshqozon,setOshqozon]=useState(false);
+  const [hafta, setHafta] = useState(0);
+  const [tab, setTab] = useState("ratsion");
+  const [maslahatIdx, setMaslahatIdx] = useState(0);
+  const [oshqozon, setOshqozon] = useState(false);
 
-  // Firebase init
-  let auth,db,googleProvider;
-  try{
-    const app=initializeApp(firebaseConfig);
-    auth=getAuth(app);
-    db=getFirestore(app);
-    googleProvider=new GoogleAuthProvider();
-  }catch(e){console.log("Firebase init error",e);}
-
-  const inp={width:"100%",padding:"12px 14px",borderRadius:10,border:"1.5px solid #E5E7EB",fontSize:15,color:CH,background:CR,outline:"none",boxSizing:"border-box",marginBottom:10};
-
-  // Login
-  const handleLogin=async()=>{
-    setAuthLoading(true);setAuthErr("");
-    try{
-      const cred=await signInWithEmailAndPassword(auth,email,password);
-      const snap=await getDoc(doc(db,"users",cred.user.uid));
-      if(snap.exists()){setProfile(snap.data());setScreen("main");}
-      else{setScreen("profile");}
-      setUser(cred.user);
-    }catch(e){setAuthErr("Email yoki parol noto'g'ri");}
-    setAuthLoading(false);
+  const inp = {
+    width: "100%", padding: "12px 14px", borderRadius: 10,
+    border: "1.5px solid #E5E7EB", fontSize: 15, color: CH,
+    background: CR, outline: "none", boxSizing: "border-box", marginBottom: 10
   };
 
-  // Google login
-  const handleGoogle=async()=>{
-    setAuthLoading(true);setAuthErr("");
-    try{
-      const cred=await signInWithPopup(auth,googleProvider);
-      setUser(cred.user);
-      const snap=await getDoc(doc(db,"users",cred.user.uid));
-      if(snap.exists()){setProfile(snap.data());setScreen("main");}
-      else{setProfForm(p=>({...p,ism:cred.user.displayName||""}));setScreen("profile");}
-    }catch(e){setAuthErr("Google bilan kirishda xatolik");}
-    setAuthLoading(false);
-  };
+  // Auth state listener
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (u) => {
+      if (u) {
+        setUser(u);
+        const snap = await getDoc(doc(db, "users", u.uid));
+        if (snap.exists()) {
+          setProfile(snap.data());
+          setOshqozon(snap.data().oshqozon || false);
+          setScreen("main");
+        } else {
+          setScreen("profile");
+        }
+      } else {
+        setUser(null);
+        setProfile(null);
+        setScreen("login");
+      }
+      setAppLoading(false);
+    });
+    return () => unsub();
+  }, []);
 
-  // Register
-  const handleRegister=async()=>{
-    setAuthLoading(true);setAuthErr("");
-    try{
-      const cred=await createUserWithEmailAndPassword(auth,regEmail,regPassword);
-      setUser(cred.user);
-      setProfForm(p=>({...p,ism:regName}));
+  const handlePhoneSuccess = async (firebaseUser) => {
+    setUser(firebaseUser);
+    const snap = await getDoc(doc(db, "users", firebaseUser.uid));
+    if (snap.exists()) {
+      setProfile(snap.data());
+      setOshqozon(snap.data().oshqozon || false);
+      setScreen("main");
+    } else {
       setScreen("profile");
-    }catch(e){
-      if(e.code==="auth/email-already-in-use")setAuthErr("Bu email allaqachon ro'yxatdan o'tgan");
-      else if(e.code==="auth/weak-password")setAuthErr("Parol kamida 6 ta belgi bo'lsin");
-      else setAuthErr("Xatolik yuz berdi");
     }
-    setAuthLoading(false);
   };
 
-  // Save profile
-  const handleSaveProfile=async()=>{
-    if(!profForm.ism){setAuthErr("Ismingizni kiriting");return;}
+  const handleSaveProfile = async () => {
+    if (!profForm.ism) { setAuthErr("Ismingizni kiriting"); return; }
     setAuthLoading(true);
-    try{
-      await setDoc(doc(db,"users",user.uid),{...profForm,email:user.email,createdAt:new Date().toISOString()});
+    try {
+      await setDoc(doc(db, "users", user.uid), {
+        ...profForm, uid: user.uid,
+        phone: user.phoneNumber,
+        createdAt: new Date().toISOString()
+      });
       setProfile(profForm);
       setOshqozon(profForm.oshqozon);
       setScreen("main");
-    }catch(e){setAuthErr("Saqlashda xatolik");}
+    } catch (e) { setAuthErr("Saqlashda xatolik"); }
     setAuthLoading(false);
   };
 
-  const handleLogout=async()=>{
+  const handleLogout = async () => {
     await signOut(auth);
-    setUser(null);setProfile(null);setScreen("login");
+    setUser(null); setProfile(null); setScreen("login");
   };
 
-  const HAFTA_RANGLARI=[PR,"#1D4ED8","#7C3AED","#B45309"];
+  const HAFTA_RANGLARI = [PR, "#1D4ED8", "#7C3AED", "#B45309"];
 
-  // ── LOGIN EKRANI ──
-  if(screen==="login") return(
-    <div style={{minHeight:"100vh",background:CR,fontFamily:"system-ui,-apple-system,sans-serif"}}>
-      <div style={{background:PR,padding:"30px 20px 20px",textAlign:"center"}}>
-        <div style={{fontSize:40,marginBottom:8}}>🌿</div>
-        <div style={{color:"#fff",fontWeight:800,fontSize:22}}>{"Sog'lom Hayot"}</div>
-        <div style={{color:AC,fontSize:13,marginTop:4}}>30 kunlik sog'lom hayot dasturi</div>
-      </div>
-      <div style={{maxWidth:400,margin:"0 auto",padding:"30px 20px"}}>
-        <div style={{background:SU,borderRadius:16,padding:20,boxShadow:"0 2px 12px rgba(0,0,0,0.08)"}}>
-          <div style={{fontWeight:800,fontSize:18,color:PR,marginBottom:20,textAlign:"center"}}>Kirish</div>
-          {authErr&&<div style={{background:"#FEF2F2",border:"1px solid #FCA5A5",borderRadius:9,padding:"9px 12px",color:DA,fontSize:13,marginBottom:12}}>{authErr}</div>}
-          <input style={inp} type="email" placeholder="Email manzil" value={email} onChange={e=>setEmail(e.target.value)}/>
-          <input style={inp} type="password" placeholder="Parol" value={password} onChange={e=>setPassword(e.target.value)}/>
-          <button onClick={handleLogin} disabled={authLoading} style={{width:"100%",padding:"13px",borderRadius:12,border:"none",background:"linear-gradient(135deg,"+PR+","+AC+")",color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",marginBottom:10}}>
-            {authLoading?"Kirmoqda...":"Kirish"}
-          </button>
-          <button onClick={handleGoogle} disabled={authLoading} style={{width:"100%",padding:"12px",borderRadius:12,border:"1.5px solid #E5E7EB",background:SU,color:CH,fontSize:14,fontWeight:600,cursor:"pointer",marginBottom:16,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
-            <span style={{fontSize:18}}>G</span> Google bilan kirish
-          </button>
-          <div style={{textAlign:"center",fontSize:13,color:MU}}>
-            Hisob yo'qmi? <span onClick={()=>{setScreen("register");setAuthErr("");}} style={{color:PR,fontWeight:700,cursor:"pointer"}}>Ro'yxatdan o'tish</span>
-          </div>
-        </div>
-      </div>
+  if (appLoading) return (
+    <div style={{ minHeight: "100vh", background: CR, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 16 }}>
+      <div style={{ fontSize: 48 }}>🌿</div>
+      <div style={{ fontSize: 16, color: PR, fontWeight: 700 }}>Yuklanmoqda...</div>
     </div>
   );
 
-  // ── REGISTER EKRANI ──
-  if(screen==="register") return(
-    <div style={{minHeight:"100vh",background:CR,fontFamily:"system-ui,-apple-system,sans-serif"}}>
-      <div style={{background:PR,padding:"30px 20px 20px",textAlign:"center"}}>
-        <div style={{fontSize:40,marginBottom:8}}>🌿</div>
-        <div style={{color:"#fff",fontWeight:800,fontSize:22}}>{"Sog'lom Hayot"}</div>
-      </div>
-      <div style={{maxWidth:400,margin:"0 auto",padding:"30px 20px"}}>
-        <div style={{background:SU,borderRadius:16,padding:20,boxShadow:"0 2px 12px rgba(0,0,0,0.08)"}}>
-          <div style={{fontWeight:800,fontSize:18,color:PR,marginBottom:20,textAlign:"center"}}>Ro'yxatdan o'tish</div>
-          {authErr&&<div style={{background:"#FEF2F2",border:"1px solid #FCA5A5",borderRadius:9,padding:"9px 12px",color:DA,fontSize:13,marginBottom:12}}>{authErr}</div>}
-          <input style={inp} type="text" placeholder="Ismingiz" value={regName} onChange={e=>setRegName(e.target.value)}/>
-          <input style={inp} type="email" placeholder="Email manzil" value={regEmail} onChange={e=>setRegEmail(e.target.value)}/>
-          <input style={inp} type="password" placeholder="Parol (kamida 6 belgi)" value={regPassword} onChange={e=>setRegPassword(e.target.value)}/>
-          <button onClick={handleRegister} disabled={authLoading} style={{width:"100%",padding:"13px",borderRadius:12,border:"none",background:"linear-gradient(135deg,"+PR+","+AC+")",color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",marginBottom:16}}>
-            {authLoading?"Ro'yxatdan o'tilmoqda...":"Ro'yxatdan o'tish"}
-          </button>
-          <div style={{textAlign:"center",fontSize:13,color:MU}}>
-            Hisob bor? <span onClick={()=>{setScreen("login");setAuthErr("");}} style={{color:PR,fontWeight:700,cursor:"pointer"}}>Kirish</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  if (screen === "login") return <PhoneLogin onSuccess={handlePhoneSuccess} />;
 
   // ── PROFIL TO'LDIRISH ──
-  if(screen==="profile") return(
-    <div style={{minHeight:"100vh",background:CR,fontFamily:"system-ui,-apple-system,sans-serif"}}>
-      <div style={{background:PR,padding:"16px 18px"}}>
-        <div style={{color:"#fff",fontWeight:700,fontSize:17}}>🌿 Ma'lumotlaringiz</div>
-        <div style={{color:AC,fontSize:12,marginTop:2}}>Shaxsiy dastur tayyorlash uchun</div>
+  if (screen === "profile") return (
+    <div style={{ minHeight: "100vh", background: CR, fontFamily: "system-ui,-apple-system,sans-serif" }}>
+      <div style={{ background: PR, padding: "16px 18px" }}>
+        <div style={{ color: "#fff", fontWeight: 700, fontSize: 17 }}>🌿 Ma'lumotlaringiz</div>
+        <div style={{ color: AC, fontSize: 12, marginTop: 2 }}>Shaxsiy dastur tayyorlash uchun</div>
       </div>
-      <div style={{maxWidth:500,margin:"0 auto",padding:"18px 14px"}}>
-        <div style={{background:SU,borderRadius:16,padding:"17px 15px",boxShadow:"0 2px 10px rgba(0,0,0,0.07)"}}>
-          {authErr&&<div style={{background:"#FEF2F2",border:"1px solid #FCA5A5",borderRadius:9,padding:"9px 12px",color:DA,fontSize:13,marginBottom:12}}>{authErr}</div>}
-
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-            <div><div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:5}}>Ism</div><input style={{...inp,marginBottom:0}} placeholder="Jasur" value={profForm.ism} onChange={e=>setProfForm(p=>({...p,ism:e.target.value}))}/></div>
-            <div><div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:5}}>Jins</div><select style={{...inp,marginBottom:0}} value={profForm.jins} onChange={e=>setProfForm(p=>({...p,jins:e.target.value}))}><option>Erkak</option><option>Ayol</option></select></div>
+      <div style={{ maxWidth: 500, margin: "0 auto", padding: "18px 14px" }}>
+        <div style={{ background: SU, borderRadius: 16, padding: "17px 15px", boxShadow: "0 2px 10px rgba(0,0,0,0.07)" }}>
+          {authErr && <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 9, padding: "9px 12px", color: DA, fontSize: 13, marginBottom: 12 }}>{authErr}</div>}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <div><div style={{ fontSize: 13, fontWeight: 600, color: CH, marginBottom: 5 }}>Ism</div><input style={{ ...inp, marginBottom: 0 }} placeholder="Jasur" value={profForm.ism} onChange={e => setProfForm(p => ({ ...p, ism: e.target.value }))} /></div>
+            <div><div style={{ fontSize: 13, fontWeight: 600, color: CH, marginBottom: 5 }}>Jins</div><select style={{ ...inp, marginBottom: 0 }} value={profForm.jins} onChange={e => setProfForm(p => ({ ...p, jins: e.target.value }))}><option>Erkak</option><option>Ayol</option></select></div>
           </div>
-          <div style={{height:10}}/>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
-            <div><div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:5}}>Yosh</div><input style={{...inp,marginBottom:0}} type="number" placeholder="28" value={profForm.yosh} onChange={e=>setProfForm(p=>({...p,yosh:e.target.value}))}/></div>
-            <div><div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:5}}>Boy (sm)</div><input style={{...inp,marginBottom:0}} type="number" placeholder="175" value={profForm.boy} onChange={e=>setProfForm(p=>({...p,boy:e.target.value}))}/></div>
-            <div><div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:5}}>Vazn (kg)</div><input style={{...inp,marginBottom:0}} type="number" placeholder="75" value={profForm.vazn} onChange={e=>setProfForm(p=>({...p,vazn:e.target.value}))}/></div>
+          <div style={{ height: 10 }} />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+            <div><div style={{ fontSize: 13, fontWeight: 600, color: CH, marginBottom: 5 }}>Yosh</div><input style={{ ...inp, marginBottom: 0 }} type="number" placeholder="28" value={profForm.yosh} onChange={e => setProfForm(p => ({ ...p, yosh: e.target.value }))} /></div>
+            <div><div style={{ fontSize: 13, fontWeight: 600, color: CH, marginBottom: 5 }}>Boy (sm)</div><input style={{ ...inp, marginBottom: 0 }} type="number" placeholder="175" value={profForm.boy} onChange={e => setProfForm(p => ({ ...p, boy: e.target.value }))} /></div>
+            <div><div style={{ fontSize: 13, fontWeight: 600, color: CH, marginBottom: 5 }}>Vazn (kg)</div><input style={{ ...inp, marginBottom: 0 }} type="number" placeholder="75" value={profForm.vazn} onChange={e => setProfForm(p => ({ ...p, vazn: e.target.value }))} /></div>
           </div>
-          <div style={{height:10}}/>
-          <div><div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:5}}>Bel aylanasi (sm)</div><input style={{...inp}} type="number" placeholder="88" value={profForm.bel} onChange={e=>setProfForm(p=>({...p,bel:e.target.value}))}/></div>
-
-          <div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:8}}>Maqsad</div>
-          <div style={{display:"flex",gap:7,flexWrap:"wrap",marginBottom:14}}>
-            {GOALS.map(g=><button key={g} onClick={()=>setProfForm(p=>({...p,maqsad:g}))} style={{padding:"8px 14px",borderRadius:20,border:"2px solid "+(profForm.maqsad===g?PR:"#E5E7EB"),background:profForm.maqsad===g?PR:SU,color:profForm.maqsad===g?"#fff":CH,cursor:"pointer",fontSize:13,fontWeight:profForm.maqsad===g?700:400}}>{g}</button>)}
+          <div style={{ height: 10 }} />
+          <div><div style={{ fontSize: 13, fontWeight: 600, color: CH, marginBottom: 5 }}>Bel aylanasi (sm)</div><input style={inp} type="number" placeholder="88" value={profForm.bel} onChange={e => setProfForm(p => ({ ...p, bel: e.target.value }))} /></div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: CH, marginBottom: 8 }}>Maqsad</div>
+          <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginBottom: 14 }}>
+            {GOALS.map(g => <button key={g} onClick={() => setProfForm(p => ({ ...p, maqsad: g }))} style={{ padding: "8px 14px", borderRadius: 20, border: "2px solid " + (profForm.maqsad === g ? PR : "#E5E7EB"), background: profForm.maqsad === g ? PR : SU, color: profForm.maqsad === g ? "#fff" : CH, cursor: "pointer", fontSize: 13, fontWeight: profForm.maqsad === g ? 700 : 400 }}>{g}</button>)}
           </div>
-
-          <div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:8}}>Faollik darajasi</div>
-          {ACT_L.map(a=><button key={a} onClick={()=>setProfForm(p=>({...p,faollik:a}))} style={{display:"block",width:"100%",marginBottom:6,padding:"9px 13px",borderRadius:9,border:"2px solid "+(profForm.faollik===a?PR:"#E5E7EB"),background:profForm.faollik===a?PR:SU,color:profForm.faollik===a?"#fff":CH,cursor:"pointer",fontSize:13,textAlign:"left",fontWeight:profForm.faollik===a?700:400}}>{a}</button>)}
-
-          <div style={{fontSize:13,fontWeight:600,color:PR,marginBottom:8,marginTop:4}}>Muammolar bormi?</div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7,marginBottom:16}}>
-            {[["oshqozon","🫁 Oshqozon"],["diabet","🩸 Qandli diabet"],["uyqusizlik","😴 Uyqusizlik"]].map(([k,l])=>(
-              <button key={k} onClick={()=>setProfForm(p=>({...p,[k]:!p[k]}))} style={{display:"flex",alignItems:"center",gap:6,padding:"9px 10px",borderRadius:9,border:"2px solid "+(profForm[k]?AC:"#E5E7EB"),background:profForm[k]?LI:SU,cursor:"pointer",fontSize:12,fontWeight:profForm[k]?700:400,color:profForm[k]?PR:CH}}>
-                <span>{profForm[k]?"✓":"○"}</span>{l}
+          <div style={{ fontSize: 13, fontWeight: 600, color: CH, marginBottom: 8 }}>Faollik darajasi</div>
+          {ACT_L.map(a => <button key={a} onClick={() => setProfForm(p => ({ ...p, faollik: a }))} style={{ display: "block", width: "100%", marginBottom: 6, padding: "9px 13px", borderRadius: 9, border: "2px solid " + (profForm.faollik === a ? PR : "#E5E7EB"), background: profForm.faollik === a ? PR : SU, color: profForm.faollik === a ? "#fff" : CH, cursor: "pointer", fontSize: 13, textAlign: "left", fontWeight: profForm.faollik === a ? 700 : 400 }}>{a}</button>)}
+          <div style={{ fontSize: 13, fontWeight: 600, color: PR, marginBottom: 8, marginTop: 4 }}>Muammolar bormi?</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7, marginBottom: 16 }}>
+            {[["oshqozon", "🫁 Oshqozon"], ["diabet", "🩸 Qandli diabet"], ["uyqusizlik", "😴 Uyqusizlik"]].map(([k, l]) => (
+              <button key={k} onClick={() => setProfForm(p => ({ ...p, [k]: !p[k] }))} style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 10px", borderRadius: 9, border: "2px solid " + (profForm[k] ? AC : "#E5E7EB"), background: profForm[k] ? LI : SU, cursor: "pointer", fontSize: 12, fontWeight: profForm[k] ? 700 : 400, color: profForm[k] ? PR : CH }}>
+                <span>{profForm[k] ? "✓" : "○"}</span>{l}
               </button>
             ))}
           </div>
-
-          <button onClick={handleSaveProfile} disabled={authLoading} style={{width:"100%",padding:"14px",borderRadius:13,border:"none",background:"linear-gradient(135deg,"+PR+","+AC+")",color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",boxShadow:"0 4px 14px rgba(27,67,50,0.35)"}}>
-            {authLoading?"Saqlanmoqda...":"✅ Dasturni boshlash"}
+          <button onClick={handleSaveProfile} disabled={authLoading} style={{ width: "100%", padding: "14px", borderRadius: 13, border: "none", background: "linear-gradient(135deg," + PR + "," + AC + ")", color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 14px rgba(27,67,50,0.35)" }}>
+            {authLoading ? "Saqlanmoqda..." : "✅ Dasturni boshlash"}
           </button>
         </div>
       </div>
@@ -500,72 +582,67 @@ export default function App(){
   );
 
   // ── ASOSIY EKRAN ──
-  const r=RATSIONLAR[hafta];
-  return(
-    <div style={{minHeight:"100vh",background:CR,fontFamily:"system-ui,-apple-system,sans-serif"}}>
-      <div style={{background:r.rang,padding:"14px 18px",position:"sticky",top:0,zIndex:10,transition:"background 0.3s"}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <span style={{fontSize:22}}>🌿</span>
+  const r = RATSIONLAR[hafta];
+  return (
+    <div style={{ minHeight: "100vh", background: CR, fontFamily: "system-ui,-apple-system,sans-serif" }}>
+      <div style={{ background: r.rang, padding: "14px 18px", position: "sticky", top: 0, zIndex: 10, transition: "background 0.3s" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 22 }}>🌿</span>
             <div>
-              <div style={{color:"#fff",fontWeight:700,fontSize:16}}>{"Sog'lom Hayot"}</div>
-              <div style={{color:"rgba(255,255,255,0.75)",fontSize:11}}>{profile?.ism?"Salom, "+profile.ism+"!":"30 kunlik dastur"}</div>
+              <div style={{ color: "#fff", fontWeight: 700, fontSize: 16 }}>Sog'lom Hayot</div>
+              <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 11 }}>{profile?.ism ? "Salom, " + profile.ism + "!" : "30 kunlik dastur"}</div>
             </div>
           </div>
-          <div style={{display:"flex",alignItems:"center",gap:8}}>
-            <div style={{background:"rgba(255,255,255,0.15)",borderRadius:20,padding:"4px 8px",display:"flex",alignItems:"center",gap:5,cursor:"pointer"}} onClick={()=>setOshqozon(o=>!o)}>
-              <div style={{width:24,height:14,borderRadius:7,background:oshqozon?"#EF4444":"rgba(255,255,255,0.4)",position:"relative"}}>
-                <div style={{position:"absolute",width:10,height:10,borderRadius:5,background:"#fff",top:2,left:oshqozon?12:2,transition:"left 0.2s"}}/>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 20, padding: "4px 8px", display: "flex", alignItems: "center", gap: 5, cursor: "pointer" }} onClick={() => setOshqozon(o => !o)}>
+              <div style={{ width: 24, height: 14, borderRadius: 7, background: oshqozon ? "#EF4444" : "rgba(255,255,255,0.4)", position: "relative" }}>
+                <div style={{ position: "absolute", width: 10, height: 10, borderRadius: 5, background: "#fff", top: 2, left: oshqozon ? 12 : 2, transition: "left 0.2s" }} />
               </div>
-              <span style={{color:"rgba(255,255,255,0.9)",fontSize:10}}>Oshqozon</span>
+              <span style={{ color: "rgba(255,255,255,0.9)", fontSize: 10 }}>Oshqozon</span>
             </div>
-            <button onClick={handleLogout} style={{background:"rgba(255,255,255,0.15)",border:"none",borderRadius:8,padding:"6px 10px",color:"#fff",fontSize:11,cursor:"pointer"}}>Chiqish</button>
+            <button onClick={handleLogout} style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 8, padding: "6px 10px", color: "#fff", fontSize: 11, cursor: "pointer" }}>Chiqish</button>
           </div>
         </div>
       </div>
 
-      <div style={{maxWidth:680,margin:"0 auto",padding:"16px 14px"}}>
-
-        {/* Maslahat */}
-        <div style={{background:"linear-gradient(135deg,"+PR+",#2D6A4F)",borderRadius:14,padding:"14px 16px",marginBottom:14,cursor:"pointer"}} onClick={()=>setMaslahatIdx(i=>(i+1)%MASLAHATLAR.length)}>
-          <div style={{color:"rgba(255,255,255,0.6)",fontSize:10,fontWeight:600,marginBottom:6}}>💡 KUNLIK MASLAHAT</div>
-          <div style={{fontSize:22,marginBottom:6}}>{MASLAHATLAR[maslahatIdx].emoji}</div>
-          <div style={{color:"#fff",fontSize:13,lineHeight:1.6}}>{MASLAHATLAR[maslahatIdx].matn}</div>
+      <div style={{ maxWidth: 680, margin: "0 auto", padding: "16px 14px" }}>
+        <div style={{ background: "linear-gradient(135deg," + PR + ",#2D6A4F)", borderRadius: 14, padding: "14px 16px", marginBottom: 14, cursor: "pointer" }} onClick={() => setMaslahatIdx(i => (i + 1) % MASLAHATLAR.length)}>
+          <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 10, fontWeight: 600, marginBottom: 6 }}>💡 KUNLIK MASLAHAT</div>
+          <div style={{ fontSize: 22, marginBottom: 6 }}>{MASLAHATLAR[maslahatIdx].emoji}</div>
+          <div style={{ color: "#fff", fontSize: 13, lineHeight: 1.6 }}>{MASLAHATLAR[maslahatIdx].matn}</div>
         </div>
 
-        {/* Hafta tanlash */}
-        <div style={{marginBottom:14}}>
-          <div style={{fontSize:12,color:MU,marginBottom:8,fontWeight:600}}>📅 Hafta tanlang:</div>
-          <div style={{display:"flex",gap:6}}>
-            {RATSIONLAR.map((x,i)=>(
-              <button key={i} onClick={()=>setHafta(i)} style={{flex:1,padding:"10px 4px",borderRadius:11,border:"2px solid "+(hafta===i?HAFTA_RANGLARI[i]:"#E5E7EB"),background:hafta===i?HAFTA_RANGLARI[i]:SU,color:hafta===i?"#fff":CH,cursor:"pointer",textAlign:"center"}}>
-                <div style={{fontSize:14,fontWeight:800}}>{i+1}</div>
-                <div style={{fontSize:9,marginTop:2,color:hafta===i?"rgba(255,255,255,0.8)":MU}}>Hafta</div>
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 12, color: MU, marginBottom: 8, fontWeight: 600 }}>📅 Hafta tanlang:</div>
+          <div style={{ display: "flex", gap: 6 }}>
+            {RATSIONLAR.map((x, i) => (
+              <button key={i} onClick={() => setHafta(i)} style={{ flex: 1, padding: "10px 4px", borderRadius: 11, border: "2px solid " + (hafta === i ? HAFTA_RANGLARI[i] : "#E5E7EB"), background: hafta === i ? HAFTA_RANGLARI[i] : SU, color: hafta === i ? "#fff" : CH, cursor: "pointer", textAlign: "center" }}>
+                <div style={{ fontSize: 14, fontWeight: 800 }}>{i + 1}</div>
+                <div style={{ fontSize: 9, marginTop: 2, color: hafta === i ? "rgba(255,255,255,0.8)" : MU }}>Hafta</div>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Hafta banner */}
-        <div style={{background:"linear-gradient(135deg,"+r.rang+","+r.rang+"CC)",borderRadius:14,padding:"14px 16px",marginBottom:14}}>
-          <div style={{color:"#fff",fontWeight:800,fontSize:15,marginBottom:4}}>{r.nom}</div>
-          <div style={{color:"rgba(255,255,255,0.85)",fontSize:12}}>{r.tavsif}</div>
+        <div style={{ background: "linear-gradient(135deg," + r.rang + "," + r.rang + "CC)", borderRadius: 14, padding: "14px 16px", marginBottom: 14 }}>
+          <div style={{ color: "#fff", fontWeight: 800, fontSize: 15, marginBottom: 4 }}>{r.nom}</div>
+          <div style={{ color: "rgba(255,255,255,0.85)", fontSize: 12 }}>{r.tavsif}</div>
         </div>
 
-        {/* Tablar */}
-        <div style={{display:"flex",gap:4,marginBottom:12,overflowX:"auto",paddingBottom:2}}>
-          {[["ratsion","🍽️"],["sport","🏋️"],["suv","💧"],["nafas","🫁"],["progress","📊"]].map(([x,l])=>(
-            <button key={x} onClick={()=>setTab(x)} style={{minWidth:46,padding:"9px 8px",borderRadius:11,border:"none",background:tab===x?r.rang:SU,color:tab===x?"#fff":MU,cursor:"pointer",fontSize:16,fontWeight:tab===x?700:400,boxShadow:"0 1px 3px rgba(0,0,0,0.07)",flexShrink:0}}>
+        <div style={{ display: "flex", gap: 4, marginBottom: 12, overflowX: "auto", paddingBottom: 2 }}>
+          {[["ratsion", "🍽️"], ["sport", "🏋️"], ["suv", "💧"], ["nafas", "🫁"], ["progress", "📊"]].map(([x, l]) => (
+            <button key={x} onClick={() => setTab(x)} style={{ minWidth: 46, padding: "9px 8px", borderRadius: 11, border: "none", background: tab === x ? r.rang : SU, color: tab === x ? "#fff" : MU, cursor: "pointer", fontSize: 16, fontWeight: tab === x ? 700 : 400, boxShadow: "0 1px 3px rgba(0,0,0,0.07)", flexShrink: 0 }}>
               {l}
             </button>
           ))}
         </div>
 
-        {tab==="ratsion"&&<div>{r.bloklar.map((b,i)=><RatsionBlok key={i} b={b} oshqozon={oshqozon}/>)}</div>}
-        {tab==="sport"&&<SportTab/>}
-        {tab==="suv"&&<SuvTab/>}
-        {tab==="nafas"&&<NafasTab/>}
-        {tab==="progress"&&<ProgressTab/>}
+        {tab === "ratsion" && <div>{r.bloklar.map((b, i) => <RatsionBlok key={i} b={b} oshqozon={oshqozon} />)}</div>}
+        {tab === "sport" && <SportTab />}
+        {tab === "suv" && <SuvTab />}
+        {tab === "nafas" && <NafasTab />}
+        {tab === "progress" && <ProgressTab />}
       </div>
     </div>
   );
