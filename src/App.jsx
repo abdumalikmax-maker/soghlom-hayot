@@ -79,7 +79,7 @@ const MASLAHATLAR=[
   {emoji:"🌅",matn:"Ertalab birinchi ish — telefon emas, 500ml iliq suv iching."},
   {emoji:"🚶",matn:"Ovqatdan keyin 10-15 daqiqa sekin yurish — eng oddiy, eng kuchli dori."},
   {emoji:"😴",matn:"22:00 da uxlash — o'sish gormoni shu vaqtda eng ko'p chiqadi."},
-  {emoji:"🌿",text:"Rastoropsha jigarni kundalik toksinlardan tozalaydi."},
+  {emoji:"🌿",matn:"Rastoropsha jigarni kundalik toksinlardan tozalaydi."},
   {emoji:"💊",matn:"Magniy 300 dan ortiq ferment reaktsiyasida ishtirok etadi."},
   {emoji:"🫁",matn:"4-4-6 nafas: stressni 1 daqiqada pasaytiradi."},
   {emoji:"💧",matn:"Miyangiz 75% suvdan iborat — har soatda suv iching."},
@@ -280,64 +280,102 @@ function ProgressTab(){
   );
 }
 
-// To'lov modal
-function TovModal({hafta, profil, onClose}){
-  const [copied, setCopied] = useState(false);
+// Kirish kodi modal
+function KodModal({hafta, profil, onClose, onKodKiritish}){
+  const [kod, setKod] = useState("");
+  const [xato, setXato] = useState("");
+  const [yuborildi, setYuborildi] = useState(false);
 
   const sendToTelegram = async () => {
-    const msg = `🆕 YANGI TO'LOV SO'ROVI\n\n👤 Ism: ${profil.ism}\n📱 Hafta: ${hafta+1}-hafta\n💰 Narx: ${NARX.toLocaleString()} so'm\n\n✅ To'lovni tasdiqlash uchun foydalanuvchiga javob bering.`;
+    const msg = `🆕 YANGI TO'LOV SO'ROVI\n\n👤 Ism: ${profil.ism}\n📅 Hafta: ${hafta+1}-hafta\n💰 Narx: ${NARX.toLocaleString()} so'm\n📱 Qurilma: ${navigator.userAgent.includes("iPhone")?"iPhone":"Android/Boshqa"}\n\n✅ To'lovni qabul qilib, foydalanuvchiga kirish kodi yuboring.`;
     try {
       await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: {"Content-Type":"application/json"},
         body: JSON.stringify({chat_id: ADMIN_ID, text: msg})
       });
-    } catch(e) {}
+      setYuborildi(true);
+    } catch(e) {
+      setYuborildi(true);
+    }
   };
 
-  const handleTolov = () => {
-    sendToTelegram();
-    window.open(`https://t.me/soghlom_hayot_bot?start=tolov_hafta${hafta+1}_${profil.ism}`, "_blank");
-    onClose();
+  const kodniTekshir = () => {
+    if(kod.trim().length < 4){
+      setXato("Kodni to'liq kiriting");
+      return;
+    }
+    onKodKiritish(hafta, kod.trim().toUpperCase());
   };
 
   return(
     <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.6)",zIndex:100,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
       <div style={{background:SU,borderRadius:"20px 20px 0 0",padding:24,width:"100%",maxWidth:480}}>
-        <div style={{textAlign:"center",marginBottom:16}}>
-          <div style={{fontSize:40,marginBottom:8}}>🔒</div>
-          <div style={{fontWeight:800,fontSize:20,color:PR}}>{hafta+1}-hafta</div>
-          <div style={{fontSize:13,color:MU,marginTop:4}}>Bu hafta uchun to'lov kerak</div>
-        </div>
 
-        <div style={{background:LI,borderRadius:12,padding:16,marginBottom:16}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-            <span style={{fontSize:14,color:CH}}>💰 Narx:</span>
-            <span style={{fontSize:18,fontWeight:800,color:PR}}>{NARX.toLocaleString()} so'm</span>
-          </div>
-          <div style={{fontSize:12,color:MU}}>✅ To'liq hafta dasturi ochiladi</div>
-          <div style={{fontSize:12,color:MU}}>✅ Ratsion, sport, suv, nafas</div>
-        </div>
+        {!yuborildi ? (
+          <>
+            <div style={{textAlign:"center",marginBottom:16}}>
+              <div style={{fontSize:40,marginBottom:8}}>🔒</div>
+              <div style={{fontWeight:800,fontSize:20,color:PR}}>{hafta+1}-hafta</div>
+              <div style={{fontSize:13,color:MU,marginTop:4}}>Bu hafta uchun to'lov kerak</div>
+            </div>
 
-        <div style={{background:"#FFF3CD",borderRadius:12,padding:14,marginBottom:16,fontSize:13,color:"#856404"}}>
-          <b>📋 To'lov tartibi:</b><br/>
-          1. Telegram botga o'ting<br/>
-          2. Payme/Click orqali to'lang<br/>
-          3. Admin tasdiqlaydi → hafta ochiladi
-        </div>
+            <div style={{background:LI,borderRadius:12,padding:16,marginBottom:16}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                <span style={{fontSize:14,color:CH}}>💰 Narx:</span>
+                <span style={{fontSize:18,fontWeight:800,color:PR}}>{NARX.toLocaleString()} so'm</span>
+              </div>
+              <div style={{fontSize:12,color:MU}}>✅ To'liq hafta dasturi ochiladi</div>
+            </div>
 
-        <button onClick={handleTolov} style={{width:"100%",padding:"16px",borderRadius:14,border:"none",background:"linear-gradient(135deg,#0088cc,#0055aa)",color:"#fff",fontSize:16,fontWeight:700,cursor:"pointer",marginBottom:10,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
-          <span style={{fontSize:20}}>✈️</span> Telegram orqali to'lash
-        </button>
-        <button onClick={onClose} style={{width:"100%",padding:"12px",borderRadius:12,border:"1px solid #E5E7EB",background:"transparent",color:MU,fontSize:14,cursor:"pointer"}}>
-          Bekor qilish
-        </button>
+            <div style={{background:"#FFF3CD",borderRadius:12,padding:14,marginBottom:16,fontSize:13,color:"#856404"}}>
+              <b>📋 To'lov tartibi:</b><br/>
+              1. Quyidagi tugmani bosing<br/>
+              2. Admin sizga hisobga to'lov ma'lumotlarini yuboradi<br/>
+              3. To'lagach, kirish kodi keladi<br/>
+              4. Kodni pastga kiriting → hafta ochiladi
+            </div>
+
+            <button onClick={sendToTelegram} style={{width:"100%",padding:"15px",borderRadius:14,border:"none",background:"linear-gradient(135deg,#0088cc,#0055aa)",color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",marginBottom:10,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+              <span>✈️</span> Admin bilan bog'lanish
+            </button>
+            <button onClick={onClose} style={{width:"100%",padding:"12px",borderRadius:12,border:"1px solid #E5E7EB",background:"transparent",color:MU,fontSize:14,cursor:"pointer"}}>
+              Bekor qilish
+            </button>
+          </>
+        ) : (
+          <>
+            <div style={{textAlign:"center",marginBottom:20}}>
+              <div style={{fontSize:40,marginBottom:8}}>✅</div>
+              <div style={{fontWeight:800,fontSize:18,color:PR}}>So'rov yuborildi!</div>
+              <div style={{fontSize:13,color:MU,marginTop:6,lineHeight:1.6}}>Admin tez orada siz bilan bog'lanadi va to'lov ma'lumotlarini yuboradi.</div>
+            </div>
+
+            <div style={{background:"#F0FDF4",border:"1px solid #BBF7D0",borderRadius:12,padding:16,marginBottom:16}}>
+              <div style={{fontSize:13,fontWeight:700,color:PR,marginBottom:10}}>🔑 Kirish kodingiz bormi?</div>
+              <input
+                type="text"
+                placeholder="Masalan: SH123456"
+                value={kod}
+                onChange={e=>{setKod(e.target.value.toUpperCase());setXato("");}}
+                style={{width:"100%",padding:"12px 14px",borderRadius:10,border:"2px solid "+(xato?"#FCA5A5":"#BBF7D0"),fontSize:16,fontWeight:700,letterSpacing:3,textAlign:"center",outline:"none",boxSizing:"border-box",background:"#fff",color:PR}}
+              />
+              {xato&&<div style={{color:DA,fontSize:12,marginTop:6,textAlign:"center"}}>{xato}</div>}
+              <button onClick={kodniTekshir} style={{width:"100%",marginTop:10,padding:"13px",borderRadius:12,border:"none",background:PR,color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer"}}>
+                🔓 Kodni kiritish
+              </button>
+            </div>
+
+            <button onClick={onClose} style={{width:"100%",padding:"12px",borderRadius:12,border:"1px solid #E5E7EB",background:"transparent",color:MU,fontSize:14,cursor:"pointer"}}>
+              Yopish
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
 }
 
-// Profil sahifasi
 function ProfilSahifasi({onSave}){
   const [form,setForm]=useState({ism:"",jins:"Erkak",yosh:"",boy:"",vazn:"",bel:"",faollik:ACT_L[1],maqsad:"Ozish",oshqozon:false,diabet:false,uyqusizlik:false});
   const [err,setErr]=useState("");
@@ -392,6 +430,16 @@ function ProfilSahifasi({onSave}){
   );
 }
 
+// Kodlarni tekshirish funksiyasi
+function kodToHafta(kod) {
+  // SH1XXXX = 1-hafta, SH2XXXX = 2-hafta, etc.
+  if(kod.startsWith("SH1")) return 0;
+  if(kod.startsWith("SH2")) return 1;
+  if(kod.startsWith("SH3")) return 2;
+  if(kod.startsWith("SH4")) return 3;
+  return -1;
+}
+
 export default function App(){
   const [profile,setProfile]=useState(null);
   const [loading,setLoading]=useState(true);
@@ -400,7 +448,9 @@ export default function App(){
   const [maslahatIdx,setMaslahatIdx]=useState(0);
   const [oshqozon,setOshqozon]=useState(false);
   const [ochikHaftalar,setOchikHaftalar]=useState([]);
-  const [tovModal,setTovModal]=useState(null);
+  const [kodModal,setKodModal]=useState(null);
+  const [kodXato,setKodXato]=useState("");
+  const [kodMuvaffaq,setKodMuvaffaq]=useState("");
 
   useEffect(()=>{
     const saved=localStorage.getItem("soghlom_profil");
@@ -411,13 +461,42 @@ export default function App(){
     }
     const ochik=localStorage.getItem("ochik_haftalar");
     if(ochik) setOchikHaftalar(JSON.parse(ochik));
+    else {
+      setOchikHaftalar([]);
+      localStorage.setItem("ochik_haftalar", JSON.stringify([]));
+    }
     setLoading(false);
   },[]);
 
-  const haftaOch=(i)=>{
-    const yangi=[...ochikHaftalar,i];
+  const handleKodKiritish = (haftaIdx, kod) => {
+    const savedKodlar = JSON.parse(localStorage.getItem("ishlatilgan_kodlar")||"[]");
+
+    // Kod allaqachon ishlatilganmi?
+    if(savedKodlar.includes(kod)){
+      setKodXato("Bu kod allaqachon ishlatilgan!");
+      return;
+    }
+
+    // Kod to'g'ri haftaga mosmi?
+    const kodHafta = kodToHafta(kod);
+    if(kodHafta === -1 || kodHafta !== haftaIdx){
+      setKodXato("Kod noto'g'ri yoki boshqa hafta uchun!");
+      return;
+    }
+
+    // Haftani och
+    const yangi = [...new Set([...ochikHaftalar, haftaIdx])];
     setOchikHaftalar(yangi);
-    localStorage.setItem("ochik_haftalar",JSON.stringify(yangi));
+    localStorage.setItem("ochik_haftalar", JSON.stringify(yangi));
+
+    // Kodni saqlash
+    savedKodlar.push(kod);
+    localStorage.setItem("ishlatilgan_kodlar", JSON.stringify(savedKodlar));
+
+    setKodModal(null);
+    setKodMuvaffaq(`✅ ${haftaIdx+1}-hafta ochildi!`);
+    setHafta(haftaIdx);
+    setTimeout(()=>setKodMuvaffaq(""), 3000);
   };
 
   const handleSave=(p)=>{
@@ -428,8 +507,9 @@ export default function App(){
   const handleReset=()=>{
     localStorage.removeItem("soghlom_profil");
     localStorage.removeItem("ochik_haftalar");
+    localStorage.removeItem("ishlatilgan_kodlar");
     setProfile(null);
-    setOchikHaftalar([]);
+    setOchikHaftalar([0]);
   };
 
   if(loading) return(
@@ -447,7 +527,14 @@ export default function App(){
 
   return(
     <div style={{minHeight:"100vh",background:CR,fontFamily:"system-ui,-apple-system,sans-serif"}}>
-      {tovModal!==null&&<TovModal hafta={tovModal} profil={profile} onClose={()=>setTovModal(null)}/>}
+      {kodModal!==null&&(
+        <KodModal
+          hafta={kodModal}
+          profil={profile}
+          onClose={()=>setKodModal(null)}
+          onKodKiritish={handleKodKiritish}
+        />
+      )}
 
       <div style={{background:r.rang,padding:"14px 18px",position:"sticky",top:0,zIndex:10}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
@@ -471,13 +558,15 @@ export default function App(){
       </div>
 
       <div style={{maxWidth:680,margin:"0 auto",padding:"16px 14px"}}>
+
+        {kodMuvaffaq&&<div style={{background:"#F0FDF4",border:"1px solid #BBF7D0",borderRadius:10,padding:"12px 16px",marginBottom:12,textAlign:"center",fontWeight:700,color:"#065F46",fontSize:14}}>{kodMuvaffaq}</div>}
+
         <div style={{background:"linear-gradient(135deg,"+PR+",#2D6A4F)",borderRadius:14,padding:"14px 16px",marginBottom:14,cursor:"pointer"}} onClick={()=>setMaslahatIdx(i=>(i+1)%MASLAHATLAR.length)}>
           <div style={{color:"rgba(255,255,255,0.6)",fontSize:10,fontWeight:600,marginBottom:6}}>💡 KUNLIK MASLAHAT</div>
           <div style={{fontSize:22,marginBottom:6}}>{MASLAHATLAR[maslahatIdx].emoji}</div>
           <div style={{color:"#fff",fontSize:13,lineHeight:1.6}}>{MASLAHATLAR[maslahatIdx].matn}</div>
         </div>
 
-        {/* Hafta tanlash - qulf bilan */}
         <div style={{marginBottom:14}}>
           <div style={{fontSize:12,color:MU,marginBottom:8,fontWeight:600}}>📅 Hafta tanlang:</div>
           <div style={{display:"flex",gap:6}}>
@@ -486,26 +575,25 @@ export default function App(){
               return(
                 <button key={i} onClick={()=>{
                   if(ochiq){setHafta(i);}
-                  else{setTovModal(i);}
+                  else{setKodModal(i);}
                 }} style={{flex:1,padding:"10px 4px",borderRadius:11,border:"2px solid "+(hafta===i?HAFTA_RANGLARI[i]:"#E5E7EB"),background:hafta===i?HAFTA_RANGLARI[i]:SU,color:hafta===i?"#fff":CH,cursor:"pointer",textAlign:"center",position:"relative"}}>
                   {!ochiq&&<div style={{position:"absolute",top:-6,right:-4,background:"#EF4444",borderRadius:"50%",width:18,height:18,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10}}>🔒</div>}
                   <div style={{fontSize:14,fontWeight:800}}>{i+1}</div>
-                  <div style={{fontSize:9,marginTop:2,color:hafta===i?"rgba(255,255,255,0.8)":MU}}>{ochiq?"Ochiq":"Hafta"}</div>
+                  <div style={{fontSize:9,marginTop:2,color:hafta===i?"rgba(255,255,255,0.8)":MU}}>{ochiq?"Ochiq":"Yopiq"}</div>
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Hafta banner yoki qulf ekrani */}
         {!isOchiq ? (
           <div style={{background:"linear-gradient(135deg,#1a1a2e,#16213e)",borderRadius:16,padding:24,textAlign:"center",marginBottom:14}}>
             <div style={{fontSize:48,marginBottom:12}}>🔒</div>
             <div style={{color:"#fff",fontWeight:800,fontSize:18,marginBottom:8}}>{hafta+1}-hafta yopiq</div>
-            <div style={{color:"rgba(255,255,255,0.7)",fontSize:13,marginBottom:20}}>Bu haftani ochish uchun to'lov qiling</div>
+            <div style={{color:"rgba(255,255,255,0.7)",fontSize:13,marginBottom:20}}>To'lov qiling va kirish kodingizni kiriting</div>
             <div style={{color:"#FFD700",fontWeight:800,fontSize:24,marginBottom:20}}>{NARX.toLocaleString()} so'm</div>
-            <button onClick={()=>setTovModal(hafta)} style={{padding:"14px 32px",borderRadius:14,border:"none",background:"linear-gradient(135deg,#0088cc,#0055aa)",color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:8}}>
-              ✈️ Telegram orqali to'lash
+            <button onClick={()=>setKodModal(hafta)} style={{padding:"14px 32px",borderRadius:14,border:"none",background:"linear-gradient(135deg,#0088cc,#0055aa)",color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer"}}>
+              🔑 To'lash va kod olish
             </button>
           </div>
         ) : (
