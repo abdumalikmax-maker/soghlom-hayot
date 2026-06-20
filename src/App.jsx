@@ -3,7 +3,8 @@ import { initializeApp } from "firebase/app";
 import {
   getAuth,
   GoogleAuthProvider,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
@@ -313,12 +314,11 @@ function GoogleLogin({ onSuccess }) {
     setLoading(true); setErr("");
     try {
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      onSuccess(result.user);
+      await signInWithRedirect(auth, provider);
     } catch (e) {
       setErr("Google bilan kirishda xatolik. Qayta urinib ko'ring.");
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -386,6 +386,25 @@ export default function App() {
 
   // Auth state listener
   useEffect(() => {
+    // Redirect natijasini tekshirish
+    getRedirectResult(auth).then(async (result) => {
+      if (result?.user) {
+        const u = result.user;
+        setUser(u);
+        const snap = await getDoc(doc(db, "users", u.uid));
+        if (snap.exists()) {
+          setProfile(snap.data());
+          setOshqozon(snap.data().oshqozon || false);
+          setScreen("main");
+        } else {
+          setProfForm(p => ({ ...p, ism: u.displayName || "" }));
+          setScreen("profile");
+        }
+        setAppLoading(false);
+        return;
+      }
+    }).catch(() => {});
+
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (u) {
         setUser(u);
