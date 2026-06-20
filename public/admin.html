@@ -5,51 +5,51 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sog'lom Hayot — Admin Panel</title>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: system-ui, sans-serif; background: #F0FDF4; color: #1C1C1E; }
-.header { background: #1B4332; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
-.header h1 { color: #fff; font-size: 18px; }
-.header span { color: #52B788; font-size: 13px; }
-.stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; padding: 16px; }
-.stat { background: #fff; border-radius: 12px; padding: 14px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-.stat .num { font-size: 28px; font-weight: 800; color: #1B4332; }
-.stat .lab { font-size: 11px; color: #6B7280; margin-top: 4px; }
-.section { padding: 0 16px 16px; }
-.section h2 { font-size: 15px; font-weight: 700; color: #1B4332; margin-bottom: 10px; }
-.card { background: #fff; border-radius: 12px; padding: 14px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-.card .top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-.card .ism { font-weight: 700; font-size: 15px; }
-.card .vaqt { font-size: 11px; color: #6B7280; }
-.card .info { font-size: 13px; color: #6B7280; margin-bottom: 10px; }
-.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-.badge.kutilmoqda { background: #FEF3C7; color: #92400E; }
-.badge.tasdiqlangan { background: #D1FAE5; color: #065F46; }
-.badge.bekor { background: #FEE2E2; color: #991B1B; }
-.btn { padding: 8px 16px; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; }
-.btn.confirm { background: #1B4332; color: #fff; }
-.btn.reject { background: #FEE2E2; color: #DC2626; margin-left: 6px; }
-.btn.copy { background: #EFF6FF; color: #1D4ED8; margin-left: 6px; }
-.kod { background: #F0FDF4; border: 1px dashed #52B788; border-radius: 8px; padding: 8px 12px; font-size: 16px; font-weight: 800; color: #1B4332; letter-spacing: 2px; text-align: center; margin-top: 8px; }
-.empty { text-align: center; padding: 30px; color: #6B7280; font-size: 14px; }
-.tabs { display: flex; gap: 8px; padding: 12px 16px; }
-.tab { flex: 1; padding: 10px; border-radius: 10px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; }
-.tab.active { background: #1B4332; color: #fff; }
-.tab.inactive { background: #fff; color: #6B7280; }
-.login { max-width: 360px; margin: 60px auto; background: #fff; border-radius: 16px; padding: 28px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-.login h2 { color: #1B4332; font-size: 22px; margin-bottom: 20px; text-align: center; }
-.login input { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1.5px solid #E5E7EB; font-size: 15px; margin-bottom: 12px; outline: none; }
-.login button { width: 100%; padding: 13px; border-radius: 12px; border: none; background: #1B4332; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; }
-.refresh { float: right; background: #E8F5EE; border: none; border-radius: 8px; padding: 6px 12px; font-size: 12px; color: #1B4332; cursor: pointer; }
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:system-ui,sans-serif;background:#F0FDF4;color:#1C1C1E;min-height:100vh;}
+.header{background:#1B4332;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;}
+.header h1{color:#fff;font-size:18px;}
+.header span{color:#52B788;font-size:13px;}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px;}
+.stat{background:#fff;border-radius:12px;padding:14px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.08);}
+.stat .num{font-size:26px;font-weight:800;color:#1B4332;}
+.stat .lab{font-size:11px;color:#6B7280;margin-top:3px;}
+.section{padding:0 14px 80px;}
+.card{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+.badge.active{background:#D1FAE5;color:#065F46;}
+.badge.new{background:#DBEAFE;color:#1E40AF;}
+.login{max-width:340px;margin:80px auto;background:#fff;border-radius:16px;padding:28px;box-shadow:0 4px 20px rgba(0,0,0,0.1);}
+.login h2{color:#1B4332;font-size:20px;margin-bottom:20px;text-align:center;}
+.login input{width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid #E5E7EB;font-size:15px;margin-bottom:12px;outline:none;box-sizing:border-box;}
+.login button{width:100%;padding:13px;border-radius:12px;border:none;background:#1B4332;color:#fff;font-size:15px;font-weight:700;cursor:pointer;}
+.tabs{display:flex;gap:8px;padding:12px 14px;}
+.tab{flex:1;padding:10px;border-radius:10px;border:none;font-size:12px;font-weight:600;cursor:pointer;}
+.tab.active{background:#1B4332;color:#fff;}
+.tab.inactive{background:#fff;color:#6B7280;}
+.profil-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.profil-item{background:#F0FDF4;border-radius:8px;padding:8px 10px;}
+.profil-item .k{font-size:10px;color:#6B7280;margin-bottom:2px;}
+.profil-item .v{font-size:13px;font-weight:700;color:#1B4332;}
+.progress-bar{background:#E5E7EB;border-radius:10px;height:8px;margin:6px 0;}
+.progress-fill{height:100%;border-radius:10px;background:#1B4332;}
+.star{font-size:16px;}
+.empty{text-align:center;padding:40px;color:#6B7280;font-size:14px;}
+.refresh-btn{float:right;background:#E8F5EE;border:none;border-radius:8px;padding:5px 10px;font-size:11px;color:#1B4332;cursor:pointer;}
+.sec-title{font-size:14px;font-weight:700;color:#1B4332;margin-bottom:10px;}
+.hafta-badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;color:#fff;margin-right:4px;}
+.delete-btn{background:#FEE2E2;border:none;border-radius:7px;padding:5px 10px;font-size:11px;color:#DC2626;cursor:pointer;}
+.notify-btn{background:#DBEAFE;border:none;border-radius:7px;padding:5px 10px;font-size:11px;color:#1D4ED8;cursor:pointer;margin-right:6px;}
 </style>
 </head>
 <body>
 
-<div id="loginPage" style="display:block">
+<div id="loginPage">
   <div class="login">
-    <div style="text-align:center;font-size:40px;margin-bottom:12px">🌿</div>
+    <div style="text-align:center;font-size:44px;margin-bottom:12px">🌿</div>
     <h2>Admin Panel</h2>
-    <input type="password" id="passwordInput" placeholder="Parol kiriting" onkeydown="if(event.key==='Enter')login()">
-    <button onclick="login()">Kirish</button>
+    <input type="password" id="passInput" placeholder="Parol kiriting" onkeydown="if(event.key==='Enter')login()">
+    <button onclick="login()">Kirish →</button>
     <div id="loginErr" style="color:#DC2626;font-size:13px;margin-top:10px;text-align:center"></div>
   </div>
 </div>
@@ -57,193 +57,306 @@ body { font-family: system-ui, sans-serif; background: #F0FDF4; color: #1C1C1E; 
 <div id="adminPage" style="display:none">
   <div class="header">
     <h1>🌿 Admin Panel</h1>
-    <span id="onlineCount">Yuklanmoqda...</span>
+    <span id="headerInfo">Yuklanmoqda...</span>
   </div>
 
   <div class="stats">
     <div class="stat">
-      <div class="num" id="statJami">0</div>
-      <div class="lab">Jami so'rov</div>
+      <div class="num" id="s1">0</div>
+      <div class="lab">Foydalanuvchi</div>
     </div>
     <div class="stat">
-      <div class="num" id="statTasdiqlangan">0</div>
-      <div class="lab">Tasdiqlangan</div>
+      <div class="num" id="s2">0</div>
+      <div class="lab">Faol hafta</div>
     </div>
     <div class="stat">
-      <div class="num" id="statDaromad">0</div>
-      <div class="lab">Daromad (ming)</div>
+      <div class="num" id="s3">0</div>
+      <div class="lab">To'liq profil</div>
     </div>
   </div>
 
   <div class="tabs">
-    <button class="tab active" onclick="showTab('kutilmoqda')" id="tab1">⏳ Kutilmoqda</button>
-    <button class="tab inactive" onclick="showTab('tasdiqlangan')" id="tab2">✅ Tasdiqlangan</button>
-    <button class="tab inactive" onclick="showTab('hammasi')" id="tab3">📋 Hammasi</button>
+    <button class="tab active" onclick="showTab('users')" id="t1">👤 Foydalanuvchilar</button>
+    <button class="tab inactive" onclick="showTab('stats')" id="t2">📊 Statistika</button>
+    <button class="tab inactive" onclick="showTab('settings')" id="t3">⚙️ Sozlamalar</button>
   </div>
 
-  <div class="section">
-    <h2>To'lov So'rovlari <button class="refresh" onclick="loadData()">🔄 Yangilash</button></h2>
-    <div id="listContainer"></div>
-  </div>
+  <div class="section" id="mainContent"></div>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, updateDoc, addDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<script>
+const ADMIN_PASS = "sher2024admin";
+const HAFTA_COLORS = ["#1B4332","#1D4ED8","#7C3AED","#B45309"];
+const HAFTA_NOMS = ["1-hafta","2-hafta","3-hafta","4-hafta"];
+let allUsers = [];
+let activeTab = "users";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDW4tDCId51RaoROBuKEfKLaLm7PLACEHOLDER",
-  authDomain: "soghlom-hayot.firebaseapp.com",
-  projectId: "soghlom-hayot",
-  storageBucket: "soghlom-hayot.firebasestorage.app",
-  messagingSenderId: "321253021051",
-  appId: "1:321253021051:web:7d0ae7663973c1d980d9de"
-};
-
-const ADMIN_PASSWORD = "sher2024admin";
-const BOT_TOKEN = "8740349246:AAEGvi4m6xhmmxazWI6z7VEzuEcy820kvz0";
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-let allData = [];
-let activeTab = "kutilmoqda";
-
-window.login = function() {
-  const pass = document.getElementById("passwordInput").value;
-  if(pass === ADMIN_PASSWORD) {
+function login(){
+  const p = document.getElementById("passInput").value;
+  if(p === ADMIN_PASS){
     document.getElementById("loginPage").style.display = "none";
     document.getElementById("adminPage").style.display = "block";
-    loadData();
+    loadAllData();
   } else {
     document.getElementById("loginErr").textContent = "Parol noto'g'ri!";
   }
-};
-
-window.showTab = function(tab) {
-  activeTab = tab;
-  ["tab1","tab2","tab3"].forEach((t,i) => {
-    document.getElementById(t).className = "tab " + (["kutilmoqda","tasdiqlangan","hammasi"][i] === tab ? "active" : "inactive");
-  });
-  renderList();
-};
-
-function generateKod() {
-  return "SH" + Math.floor(100000 + Math.random() * 900000);
 }
 
-async function sendTelegramMsg(chatId, msg) {
-  try {
-    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({chat_id: chatId, text: msg, parse_mode: "HTML"})
-    });
-  } catch(e) {}
-}
-
-window.loadData = async function() {
-  try {
-    const q = query(collection(db, "tolovlar"), orderBy("vaqt", "desc"));
-    const snap = await getDocs(q);
-    allData = snap.docs.map(d => ({id: d.id, ...d.data()}));
-    updateStats();
-    renderList();
-    document.getElementById("onlineCount").textContent = allData.length + " ta so'rov";
-  } catch(e) {
-    document.getElementById("listContainer").innerHTML = "<div class='empty'>Ma'lumot yuklanmadi</div>";
-  }
-};
-
-function updateStats() {
-  const tasdiqlangan = allData.filter(d => d.holat === "tasdiqlangan");
-  document.getElementById("statJami").textContent = allData.length;
-  document.getElementById("statTasdiqlangan").textContent = tasdiqlangan.length;
-  document.getElementById("statDaromad").textContent = Math.floor(tasdiqlangan.length * 399);
-}
-
-function renderList() {
-  let filtered = allData;
-  if(activeTab === "kutilmoqda") filtered = allData.filter(d => d.holat === "kutilmoqda");
-  if(activeTab === "tasdiqlangan") filtered = allData.filter(d => d.holat === "tasdiqlangan");
-
-  if(filtered.length === 0) {
-    document.getElementById("listContainer").innerHTML = "<div class='empty'>Hozircha ma'lumot yo'q</div>";
-    return;
-  }
-
-  document.getElementById("listContainer").innerHTML = filtered.map(d => {
-    const vaqt = d.vaqt?.toDate ? d.vaqt.toDate().toLocaleString("uz") : "—";
-    const holatBadge = d.holat === "tasdiqlangan" 
-      ? `<span class="badge tasdiqlangan">✅ Tasdiqlangan</span>`
-      : d.holat === "bekor"
-      ? `<span class="badge bekor">❌ Bekor</span>`
-      : `<span class="badge kutilmoqda">⏳ Kutilmoqda</span>`;
-    
-    const buttons = d.holat === "kutilmoqda" ? `
-      <button class="btn confirm" onclick="tasdiqlash('${d.id}', '${d.telegramId || ""}', '${d.ism}', ${d.hafta})">✅ Tasdiqlash</button>
-      <button class="btn reject" onclick="bekorQilish('${d.id}')">❌ Bekor</button>
-    ` : d.holat === "tasdiqlangan" ? `
-      <div class="kod">${d.kod || "—"}</div>
-      <button class="btn copy" onclick="navigator.clipboard.writeText('${d.kod}')">📋 Nusxa</button>
-    ` : "";
-
-    return `
-      <div class="card">
-        <div class="top">
-          <div>
-            <div class="ism">👤 ${d.ism || "Noma'lum"}</div>
-            <div class="vaqt">${vaqt}</div>
-          </div>
-          ${holatBadge}
-        </div>
-        <div class="info">📅 ${d.hafta + 1}-hafta • 💰 399 000 so'm ${d.telegramId ? '• 📱 TG: ' + d.telegramId : ''}</div>
-        ${buttons}
-      </div>
-    `;
-  }).join("");
-}
-
-window.tasdiqlash = async function(id, telegramId, ism, hafta) {
-  const kod = generateKod();
-  try {
-    await updateDoc(doc(db, "tolovlar", id), {
-      holat: "tasdiqlangan",
-      kod: kod,
-      tasdiqlashVaqti: serverTimestamp()
-    });
-
-    if(telegramId) {
-      const msg = `✅ <b>To'lovingiz tasdiqlandi!</b>\n\n🌿 Sog'lom Hayot\n📅 ${hafta+1}-hafta uchun kirish kodi:\n\n<code>${kod}</code>\n\nSaytga kiring va ushbu kodni kiriting!`;
-      await sendTelegramMsg(telegramId, msg);
+// LocalStorage dan barcha foydalanuvchilarni o'qish
+// Haqiqiy ilovada backend kerak, bu demo versiya
+function loadAllData(){
+  // Demo ma'lumotlar + real localStorage
+  const demoUsers = [
+    {
+      id: "demo1",
+      profil: {ism:"Jasur Toshmatov", jins:"Erkak", yosh:"28", boy:"178", vazn:"85", bel:"92", maqsad:"Ozish", faollik:"O'rtacha faol", oshqozon:false, diabet:false, uyqusizlik:true},
+      ochikHaftalar: [0,1],
+      progress: [{vazn:"85",bel:"92",energiya:3,uyqu:2,kayfiyat:3},{vazn:"83.5",bel:"90",energiya:4,uyqu:3,kayfiyat:4},{vazn:"",bel:"",energiya:3,uyqu:3,kayfiyat:3},{vazn:"",bel:"",energiya:3,uyqu:3,kayfiyat:3}],
+      sana: "2025-06-18"
+    },
+    {
+      id: "demo2",
+      profil: {ism:"Malika Yusupova", jins:"Ayol", yosh:"32", boy:"165", vazn:"68", bel:"78", maqsad:"Sog'lomlashtirish", faollik:"Faol", oshqozon:true, diabet:false, uyqusizlik:false},
+      ochikHaftalar: [0],
+      progress: [{vazn:"68",bel:"78",energiya:4,uyqu:4,kayfiyat:5},{vazn:"",bel:"",energiya:3,uyqu:3,kayfiyat:3},{vazn:"",bel:"",energiya:3,uyqu:3,kayfiyat:3},{vazn:"",bel:"",energiya:3,uyqu:3,kayfiyat:3}],
+      sana: "2025-06-19"
+    },
+    {
+      id: "demo3",
+      profil: {ism:"Bobur Karimov", jins:"Erkak", yosh:"25", boy:"182", vazn:"72", bel:"80", maqsad:"Mushak yig'ish", faollik:"Juda faol", oshqozon:false, diabet:false, uyqusizlik:false},
+      ochikHaftalar: [0,1,2,3],
+      progress: [{vazn:"72",bel:"80",energiya:5,uyqu:4,kayfiyat:5},{vazn:"73",bel:"79",energiya:5,uyqu:5,kayfiyat:5},{vazn:"73.5",bel:"79",energiya:4,uyqu:4,kayfiyat:4},{vazn:"74",bel:"78",energiya:5,uyqu:4,kayfiyat:5}],
+      sana: "2025-06-15"
     }
+  ];
 
-    alert(`✅ Tasdiqlandi!\nKod: ${kod}\n${telegramId ? "Telegram xabar yuborildi!" : "Kodni qo'lda yuboring!"}`);
-    loadData();
-  } catch(e) {
-    alert("Xatolik yuz berdi");
+  // Real localStorage dan o'qish
+  const realProfil = localStorage.getItem("soghlom_profil");
+  const realOchik = localStorage.getItem("ochik_haftalar");
+  if(realProfil){
+    const p = JSON.parse(realProfil);
+    const o = realOchik ? JSON.parse(realOchik) : [];
+    demoUsers.unshift({
+      id: "real_user",
+      profil: p,
+      ochikHaftalar: o,
+      progress: [{vazn:"",bel:"",energiya:3,uyqu:3,kayfiyat:3},{vazn:"",bel:"",energiya:3,uyqu:3,kayfiyat:3},{vazn:"",bel:"",energiya:3,uyqu:3,kayfiyat:3},{vazn:"",bel:"",energiya:3,uyqu:3,kayfiyat:3}],
+      sana: new Date().toISOString().slice(0,10),
+      real: true
+    });
   }
-};
 
-window.bekorQilish = async function(id) {
-  if(!confirm("Bekor qilasizmi?")) return;
-  await updateDoc(doc(db, "tolovlar", id), {holat: "bekor"});
-  loadData();
-};
+  allUsers = demoUsers;
+  updateStats();
+  renderTab();
+}
 
-// Demo ma'lumot qo'shish (test uchun)
-window.demoQosh = async function() {
-  await addDoc(collection(db, "tolovlar"), {
-    ism: "Test Foydalanuvchi",
-    hafta: 0,
-    holat: "kutilmoqda",
-    narx: 399000,
-    telegramId: "1364027533",
-    vaqt: serverTimestamp()
+function updateStats(){
+  document.getElementById("s1").textContent = allUsers.length;
+  const faol = allUsers.filter(u => u.ochikHaftalar.length > 0).length;
+  document.getElementById("s2").textContent = faol;
+  const toliq = allUsers.filter(u => u.profil.vazn && u.profil.boy).length;
+  document.getElementById("s3").textContent = toliq;
+  document.getElementById("headerInfo").textContent = allUsers.length + " ta foydalanuvchi";
+}
+
+function showTab(tab){
+  activeTab = tab;
+  ["t1","t2","t3"].forEach((t,i)=>{
+    const tabs = ["users","stats","settings"];
+    document.getElementById(t).className = "tab " + (tabs[i]===tab?"active":"inactive");
   });
-  loadData();
-};
-</script>
+  renderTab();
+}
 
+function renderTab(){
+  if(activeTab==="users") renderUsers();
+  else if(activeTab==="stats") renderStats();
+  else renderSettings();
+}
+
+function renderUsers(){
+  const html = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="sec-title">👤 Barcha Foydalanuvchilar</div>
+      <button class="refresh-btn" onclick="loadAllData()">🔄 Yangilash</button>
+    </div>
+    ${allUsers.map(u => renderUserCard(u)).join("")}
+  `;
+  document.getElementById("mainContent").innerHTML = html;
+}
+
+function renderUserCard(u){
+  const p = u.profil;
+  const bmi = p.vazn && p.boy ? (parseFloat(p.vazn) / Math.pow(parseFloat(p.boy)/100, 2)).toFixed(1) : "—";
+  const haftaBadges = u.ochikHaftalar.map(i => 
+    `<span class="hafta-badge" style="background:${HAFTA_COLORS[i]}">${HAFTA_NOMS[i]}</span>`
+  ).join("") || '<span style="color:#6B7280;font-size:12px">Hech qanday hafta ochilmagan</span>';
+
+  const lastProgress = u.progress ? u.progress.filter(x=>x.vazn) : [];
+  const progressHtml = lastProgress.length > 0 ? `
+    <div style="margin-top:10px;background:#F9FAFB;border-radius:8px;padding:9px">
+      <div style="font-size:11px;color:#6B7280;margin-bottom:6px;font-weight:600">📊 PROGRESS</div>
+      ${u.progress.map((pw,i) => pw.vazn ? `
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+          <span style="font-size:10px;background:${HAFTA_COLORS[i]};color:#fff;padding:1px 6px;border-radius:4px">${i+1}-h</span>
+          <span style="font-size:12px;font-weight:600;color:#1B4332">${pw.vazn}kg</span>
+          ${pw.bel?`<span style="font-size:11px;color:#6B7280">• Bel: ${pw.bel}sm</span>`:""}
+          <span>${"⭐".repeat(pw.energiya)}</span>
+        </div>
+      ` : "").join("")}
+    </div>
+  ` : "";
+
+  const muammolar = [];
+  if(p.oshqozon) muammolar.push("🫁 Oshqozon");
+  if(p.diabet) muammolar.push("🩸 Diabet");
+  if(p.uyqusizlik) muammolar.push("😴 Uyqusizlik");
+
+  return `
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div>
+          <div style="font-weight:800;font-size:16px;color:#1B4332">${p.ism || "Noma'lum"}</div>
+          <div style="font-size:11px;color:#6B7280;margin-top:2px">${u.sana} • ${p.jins} • ${p.yosh||"?"}yosh</div>
+        </div>
+        <span class="badge ${u.ochikHaftalar.length>0?'active':'new'}">${u.ochikHaftalar.length>0?'Faol':'Yangi'}</span>
+      </div>
+
+      <div class="profil-row">
+        <div class="profil-item"><div class="k">Boy / Vazn</div><div class="v">${p.boy||"?"}sm / ${p.vazn||"?"}kg</div></div>
+        <div class="profil-item"><div class="k">BMI</div><div class="v">${bmi}</div></div>
+        <div class="profil-item"><div class="k">Maqsad</div><div class="v">${p.maqsad||"—"}</div></div>
+        <div class="profil-item"><div class="k">Faollik</div><div class="v">${p.faollik||"—"}</div></div>
+      </div>
+
+      ${muammolar.length>0?`<div style="margin-bottom:8px">${muammolar.map(m=>`<span style="background:#FEF3C7;color:#92400E;border-radius:6px;padding:2px 8px;font-size:11px;margin-right:5px">${m}</span>`).join("")}</div>`:""}
+
+      <div style="margin-bottom:10px">
+        <div style="font-size:11px;color:#6B7280;margin-bottom:5px;font-weight:600">🔓 OCHIQ HAFTALAR</div>
+        ${haftaBadges}
+      </div>
+
+      ${progressHtml}
+
+      <div style="margin-top:12px;display:flex;gap:6px">
+        <button class="notify-btn" onclick="alert('Telegram xabar yuborish funksiyasi')">📱 Xabar</button>
+        <button class="notify-btn" onclick="haftaOch('${u.id}')">🔓 Hafta och</button>
+        ${u.real?`<button class="delete-btn" onclick="if(confirm('O\\'chirish?')){localStorage.removeItem('soghlom_profil');localStorage.removeItem('ochik_haftalar');loadAllData();}">🗑️ O'chirish</button>`:""}
+      </div>
+    </div>
+  `;
+}
+
+function haftaOch(id){
+  const u = allUsers.find(x=>x.id===id);
+  if(!u) return;
+  const keyods = u.ochikHaftalar.length;
+  if(keyods>=4){alert("Barcha haftalar allaqachon ochiq!");return;}
+  alert(`${u.profil.ism} uchun ${keyods+1}-hafta ochildi!\n\n(Haqiqiy ilovada bu serverga yuboriladi)`);
+}
+
+function renderStats(){
+  const maqsadlar = {};
+  const faolliklar = {};
+  allUsers.forEach(u=>{
+    const m = u.profil.maqsad||"Noma'lum";
+    const f = u.profil.faollik||"Noma'lum";
+    maqsadlar[m] = (maqsadlar[m]||0)+1;
+    faolliklar[f] = (faolliklar[f]||0)+1;
+  });
+
+  const totalHaftalar = allUsers.reduce((s,u)=>s+u.ochikHaftalar.length,0);
+  const avgHafta = allUsers.length ? (totalHaftalar/allUsers.length).toFixed(1) : 0;
+
+  const muammolKishilar = allUsers.filter(u=>u.profil.oshqozon||u.profil.diabet||u.profil.uyqusizlik).length;
+
+  const haftaHisob = [0,1,2,3].map(i=>allUsers.filter(u=>u.ochikHaftalar.includes(i)).length);
+
+  document.getElementById("mainContent").innerHTML = `
+    <div class="sec-title">📊 Umumiy Statistika</div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-size:12px;font-weight:700;color:#1B4332;margin-bottom:12px">📅 Hafta bo'yicha foydalanuvchilar</div>
+      ${[0,1,2,3].map(i=>`
+        <div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:13px;color:#1C1C1E">${HAFTA_NOMS[i]}</span>
+            <span style="font-size:13px;font-weight:700;color:${HAFTA_COLORS[i]}">${haftaHisob[i]} kishi</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${allUsers.length?haftaHisob[i]/allUsers.length*100:0}%;background:${HAFTA_COLORS[i]}"></div></div>
+        </div>
+      `).join("")}
+      <div style="margin-top:8px;font-size:12px;color:#6B7280">O'rtacha: ${avgHafta} hafta / foydalanuvchi</div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-size:12px;font-weight:700;color:#1B4332;margin-bottom:12px">🎯 Maqsadlar</div>
+      ${Object.entries(maqsadlar).map(([k,v])=>`
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #F3F4F6">
+          <span style="font-size:13px">${k}</span>
+          <span style="font-size:13px;font-weight:700;color:#1B4332">${v} ta</span>
+        </div>
+      `).join("")}
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-size:12px;font-weight:700;color:#1B4332;margin-bottom:12px">⚡ Faollik darajasi</div>
+      ${Object.entries(faolliklar).map(([k,v])=>`
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #F3F4F6">
+          <span style="font-size:13px">${k}</span>
+          <span style="font-size:13px;font-weight:700;color:#1D4ED8">${v} ta</span>
+        </div>
+      `).join("")}
+    </div>
+
+    <div class="card">
+      <div style="font-size:12px;font-weight:700;color:#1B4332;margin-bottom:12px">🏥 Sog'liq muammolari</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">
+        <div style="background:#FEF3C7;border-radius:8px;padding:10px">
+          <div style="font-size:20px;font-weight:800;color:#92400E">${allUsers.filter(u=>u.profil.oshqozon).length}</div>
+          <div style="font-size:10px;color:#92400E">🫁 Oshqozon</div>
+        </div>
+        <div style="background:#FEE2E2;border-radius:8px;padding:10px">
+          <div style="font-size:20px;font-weight:800;color:#DC2626">${allUsers.filter(u=>u.profil.diabet).length}</div>
+          <div style="font-size:10px;color:#DC2626">🩸 Diabet</div>
+        </div>
+        <div style="background:#EDE9FE;border-radius:8px;padding:10px">
+          <div style="font-size:20px;font-weight:800;color:#7C3AED">${allUsers.filter(u=>u.profil.uyqusizlik).length}</div>
+          <div style="font-size:10px;color:#7C3AED">😴 Uyqusizlik</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderSettings(){
+  document.getElementById("mainContent").innerHTML = `
+    <div class="sec-title">⚙️ Sozlamalar</div>
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-size:13px;font-weight:700;color:#1B4332;margin-bottom:10px">🔑 Parolni o'zgartirish</div>
+      <input id="newPass" type="password" placeholder="Yangi parol" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid #E5E7EB;font-size:14px;outline:none;box-sizing:border-box;margin-bottom:8px">
+      <button onclick="alert('Parol o\\'zgartirish backend kerak')" style="padding:10px 20px;border-radius:8px;border:none;background:#1B4332;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Saqlash</button>
+    </div>
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-size:13px;font-weight:700;color:#1B4332;margin-bottom:10px">💰 Narx</div>
+      <div style="font-size:24px;font-weight:800;color:#1B4332;margin-bottom:6px">399 000 so'm</div>
+      <div style="font-size:12px;color:#6B7280">Narxni o'zgartirish uchun App.jsx dagi NARX o'zgaruvchisini tahrirlang</div>
+    </div>
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;color:#1B4332;margin-bottom:10px">ℹ️ Ilova haqida</div>
+      <div style="font-size:13px;color:#6B7280;line-height:1.7">
+        Sog'lom Hayot — 30 kunlik sog'lom turmush tarzi ilovasi.<br>
+        Foydalanuvchilar: localStorage orqali<br>
+        Deploy: Vercel (soghlom-hayot.vercel.app)<br>
+        GitHub: abdumalikmax-maker/soghlom-hayot
+      </div>
+    </div>
+    <div style="margin-top:16px">
+      <button onclick="document.getElementById('adminPage').style.display='none';document.getElementById('loginPage').style.display='block'" style="width:100%;padding:12px;border-radius:10px;border:1px solid #E5E7EB;background:#fff;color:#DC2626;font-size:14px;font-weight:600;cursor:pointer">🚪 Chiqish</button>
+    </div>
+  `;
+}
+</script>
 </body>
 </html>
