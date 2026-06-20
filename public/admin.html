@@ -23,8 +23,8 @@ body{font-family:system-ui,sans-serif;background:#F0FDF4;color:#1C1C1E;min-heigh
 .login h2{color:#1B4332;font-size:20px;margin-bottom:20px;text-align:center;}
 .login input{width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid #E5E7EB;font-size:15px;margin-bottom:12px;outline:none;box-sizing:border-box;}
 .login button{width:100%;padding:13px;border-radius:12px;border:none;background:#1B4332;color:#fff;font-size:15px;font-weight:700;cursor:pointer;}
-.tabs{display:flex;gap:8px;padding:12px 14px;}
-.tab{flex:1;padding:10px;border-radius:10px;border:none;font-size:12px;font-weight:600;cursor:pointer;}
+.tabs{display:flex;gap:6px;padding:12px 14px;}
+.tab{flex:1;padding:9px 4px;border-radius:10px;border:none;font-size:11px;font-weight:600;cursor:pointer;}
 .tab.active{background:#1B4332;color:#fff;}
 .tab.inactive{background:#fff;color:#6B7280;}
 .profil-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
@@ -33,13 +33,16 @@ body{font-family:system-ui,sans-serif;background:#F0FDF4;color:#1C1C1E;min-heigh
 .profil-item .v{font-size:13px;font-weight:700;color:#1B4332;}
 .progress-bar{background:#E5E7EB;border-radius:10px;height:8px;margin:6px 0;}
 .progress-fill{height:100%;border-radius:10px;background:#1B4332;}
-.star{font-size:16px;}
 .empty{text-align:center;padding:40px;color:#6B7280;font-size:14px;}
 .refresh-btn{float:right;background:#E8F5EE;border:none;border-radius:8px;padding:5px 10px;font-size:11px;color:#1B4332;cursor:pointer;}
 .sec-title{font-size:14px;font-weight:700;color:#1B4332;margin-bottom:10px;}
 .hafta-badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;color:#fff;margin-right:4px;}
 .delete-btn{background:#FEE2E2;border:none;border-radius:7px;padding:5px 10px;font-size:11px;color:#DC2626;cursor:pointer;}
 .notify-btn{background:#DBEAFE;border:none;border-radius:7px;padding:5px 10px;font-size:11px;color:#1D4ED8;cursor:pointer;margin-right:6px;}
+.kod-box{background:#F0FDF4;border:2px dashed #52B788;border-radius:12px;padding:16px;text-align:center;margin:12px 0;}
+.kod-text{font-size:28px;font-weight:900;color:#1B4332;letter-spacing:4px;}
+.copy-btn{background:#1B4332;border:none;border-radius:8px;padding:8px 20px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;margin-top:10px;}
+.gen-btn{width:100%;padding:14px;border-radius:12px;border:none;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;}
 </style>
 </head>
 <body>
@@ -71,14 +74,15 @@ body{font-family:system-ui,sans-serif;background:#F0FDF4;color:#1C1C1E;min-heigh
     </div>
     <div class="stat">
       <div class="num" id="s3">0</div>
-      <div class="lab">To'liq profil</div>
+      <div class="lab">Kodlar</div>
     </div>
   </div>
 
   <div class="tabs">
-    <button class="tab active" onclick="showTab('users')" id="t1">👤 Foydalanuvchilar</button>
-    <button class="tab inactive" onclick="showTab('stats')" id="t2">📊 Statistika</button>
-    <button class="tab inactive" onclick="showTab('settings')" id="t3">⚙️ Sozlamalar</button>
+    <button class="tab active" onclick="showTab('users')" id="t1">👤 Mijozlar</button>
+    <button class="tab inactive" onclick="showTab('kodlar')" id="t2">🔑 Kodlar</button>
+    <button class="tab inactive" onclick="showTab('stats')" id="t3">📊 Stat</button>
+    <button class="tab inactive" onclick="showTab('settings')" id="t4">⚙️ Sozlama</button>
   </div>
 
   <div class="section" id="mainContent"></div>
@@ -86,10 +90,13 @@ body{font-family:system-ui,sans-serif;background:#F0FDF4;color:#1C1C1E;min-heigh
 
 <script>
 const ADMIN_PASS = "sher2024admin";
+const BOT_TOKEN = "8740349246:AAEGvi4m6xhmmxazWI6z7VEzuEcy820kvz0";
 const HAFTA_COLORS = ["#1B4332","#1D4ED8","#7C3AED","#B45309"];
 const HAFTA_NOMS = ["1-hafta","2-hafta","3-hafta","4-hafta"];
+const HAFTA_PREFIX = ["SH1","SH2","SH3","SH4"];
 let allUsers = [];
 let activeTab = "users";
+let yaratilganKodlar = [];
 
 function login(){
   const p = document.getElementById("passInput").value;
@@ -102,49 +109,43 @@ function login(){
   }
 }
 
-// LocalStorage dan barcha foydalanuvchilarni o'qish
-// Haqiqiy ilovada backend kerak, bu demo versiya
 function loadAllData(){
-  // Demo ma'lumotlar + real localStorage
   const demoUsers = [
     {
-      id: "demo1",
-      profil: {ism:"Jasur Toshmatov", jins:"Erkak", yosh:"28", boy:"178", vazn:"85", bel:"92", maqsad:"Ozish", faollik:"O'rtacha faol", oshqozon:false, diabet:false, uyqusizlik:true},
-      ochikHaftalar: [0,1],
-      progress: [{vazn:"85",bel:"92",energiya:3,uyqu:2,kayfiyat:3},{vazn:"83.5",bel:"90",energiya:4,uyqu:3,kayfiyat:4},{vazn:"",bel:"",energiya:3,uyqu:3,kayfiyat:3},{vazn:"",bel:"",energiya:3,uyqu:3,kayfiyat:3}],
-      sana: "2025-06-18"
+      id:"demo1",
+      profil:{ism:"Jasur Toshmatov",jins:"Erkak",yosh:"28",boy:"178",vazn:"85",bel:"92",maqsad:"Ozish",faollik:"O'rtacha faol",oshqozon:false,diabet:false,uyqusizlik:true},
+      ochikHaftalar:[0,1],
+      sana:"2025-06-18"
     },
     {
-      id: "demo2",
-      profil: {ism:"Malika Yusupova", jins:"Ayol", yosh:"32", boy:"165", vazn:"68", bel:"78", maqsad:"Sog'lomlashtirish", faollik:"Faol", oshqozon:true, diabet:false, uyqusizlik:false},
-      ochikHaftalar: [0],
-      progress: [{vazn:"68",bel:"78",energiya:4,uyqu:4,kayfiyat:5},{vazn:"",bel:"",energiya:3,uyqu:3,kayfiyat:3},{vazn:"",bel:"",energiya:3,uyqu:3,kayfiyat:3},{vazn:"",bel:"",energiya:3,uyqu:3,kayfiyat:3}],
-      sana: "2025-06-19"
+      id:"demo2",
+      profil:{ism:"Malika Yusupova",jins:"Ayol",yosh:"32",boy:"165",vazn:"68",bel:"78",maqsad:"Sog'lomlashtirish",faollik:"Faol",oshqozon:true,diabet:false,uyqusizlik:false},
+      ochikHaftalar:[0],
+      sana:"2025-06-19"
     },
     {
-      id: "demo3",
-      profil: {ism:"Bobur Karimov", jins:"Erkak", yosh:"25", boy:"182", vazn:"72", bel:"80", maqsad:"Mushak yig'ish", faollik:"Juda faol", oshqozon:false, diabet:false, uyqusizlik:false},
-      ochikHaftalar: [0,1,2,3],
-      progress: [{vazn:"72",bel:"80",energiya:5,uyqu:4,kayfiyat:5},{vazn:"73",bel:"79",energiya:5,uyqu:5,kayfiyat:5},{vazn:"73.5",bel:"79",energiya:4,uyqu:4,kayfiyat:4},{vazn:"74",bel:"78",energiya:5,uyqu:4,kayfiyat:5}],
-      sana: "2025-06-15"
+      id:"demo3",
+      profil:{ism:"Bobur Karimov",jins:"Erkak",yosh:"25",boy:"182",vazn:"72",bel:"80",maqsad:"Mushak yig'ish",faollik:"Juda faol",oshqozon:false,diabet:false,uyqusizlik:false},
+      ochikHaftalar:[0,1,2,3],
+      sana:"2025-06-15"
     }
   ];
 
-  // Real localStorage dan o'qish
   const realProfil = localStorage.getItem("soghlom_profil");
   const realOchik = localStorage.getItem("ochik_haftalar");
   if(realProfil){
     const p = JSON.parse(realProfil);
     const o = realOchik ? JSON.parse(realOchik) : [];
     demoUsers.unshift({
-      id: "real_user",
-      profil: p,
-      ochikHaftalar: o,
-      progress: [{vazn:"",bel:"",energiya:3,uyqu:3,kayfiyat:3},{vazn:"",bel:"",energiya:3,uyqu:3,kayfiyat:3},{vazn:"",bel:"",energiya:3,uyqu:3,kayfiyat:3},{vazn:"",bel:"",energiya:3,uyqu:3,kayfiyat:3}],
-      sana: new Date().toISOString().slice(0,10),
-      real: true
+      id:"real_user",
+      profil:p,
+      ochikHaftalar:o,
+      sana:new Date().toISOString().slice(0,10),
+      real:true
     });
   }
+
+  yaratilganKodlar = JSON.parse(localStorage.getItem("admin_kodlar")||"[]");
 
   allUsers = demoUsers;
   updateStats();
@@ -153,62 +154,43 @@ function loadAllData(){
 
 function updateStats(){
   document.getElementById("s1").textContent = allUsers.length;
-  const faol = allUsers.filter(u => u.ochikHaftalar.length > 0).length;
+  const faol = allUsers.filter(u=>u.ochikHaftalar.length>0).length;
   document.getElementById("s2").textContent = faol;
-  const toliq = allUsers.filter(u => u.profil.vazn && u.profil.boy).length;
-  document.getElementById("s3").textContent = toliq;
-  document.getElementById("headerInfo").textContent = allUsers.length + " ta foydalanuvchi";
+  document.getElementById("s3").textContent = yaratilganKodlar.length;
+  document.getElementById("headerInfo").textContent = allUsers.length+" ta mijoz";
 }
 
 function showTab(tab){
   activeTab = tab;
-  ["t1","t2","t3"].forEach((t,i)=>{
-    const tabs = ["users","stats","settings"];
-    document.getElementById(t).className = "tab " + (tabs[i]===tab?"active":"inactive");
+  ["t1","t2","t3","t4"].forEach((t,i)=>{
+    const tabs=["users","kodlar","stats","settings"];
+    document.getElementById(t).className="tab "+(tabs[i]===tab?"active":"inactive");
   });
   renderTab();
 }
 
 function renderTab(){
   if(activeTab==="users") renderUsers();
+  else if(activeTab==="kodlar") renderKodlar();
   else if(activeTab==="stats") renderStats();
   else renderSettings();
 }
 
 function renderUsers(){
-  const html = `
+  document.getElementById("mainContent").innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div class="sec-title">👤 Barcha Foydalanuvchilar</div>
+      <div class="sec-title">👤 Mijozlar ro'yxati</div>
       <button class="refresh-btn" onclick="loadAllData()">🔄 Yangilash</button>
     </div>
-    ${allUsers.map(u => renderUserCard(u)).join("")}
+    ${allUsers.map(u=>renderUserCard(u)).join("")}
   `;
-  document.getElementById("mainContent").innerHTML = html;
 }
 
 function renderUserCard(u){
   const p = u.profil;
-  const bmi = p.vazn && p.boy ? (parseFloat(p.vazn) / Math.pow(parseFloat(p.boy)/100, 2)).toFixed(1) : "—";
-  const haftaBadges = u.ochikHaftalar.map(i => 
-    `<span class="hafta-badge" style="background:${HAFTA_COLORS[i]}">${HAFTA_NOMS[i]}</span>`
-  ).join("") || '<span style="color:#6B7280;font-size:12px">Hech qanday hafta ochilmagan</span>';
-
-  const lastProgress = u.progress ? u.progress.filter(x=>x.vazn) : [];
-  const progressHtml = lastProgress.length > 0 ? `
-    <div style="margin-top:10px;background:#F9FAFB;border-radius:8px;padding:9px">
-      <div style="font-size:11px;color:#6B7280;margin-bottom:6px;font-weight:600">📊 PROGRESS</div>
-      ${u.progress.map((pw,i) => pw.vazn ? `
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-          <span style="font-size:10px;background:${HAFTA_COLORS[i]};color:#fff;padding:1px 6px;border-radius:4px">${i+1}-h</span>
-          <span style="font-size:12px;font-weight:600;color:#1B4332">${pw.vazn}kg</span>
-          ${pw.bel?`<span style="font-size:11px;color:#6B7280">• Bel: ${pw.bel}sm</span>`:""}
-          <span>${"⭐".repeat(pw.energiya)}</span>
-        </div>
-      ` : "").join("")}
-    </div>
-  ` : "";
-
-  const muammolar = [];
+  const bmi = p.vazn&&p.boy ? (parseFloat(p.vazn)/Math.pow(parseFloat(p.boy)/100,2)).toFixed(1) : "—";
+  const haftaBadges = u.ochikHaftalar.map(i=>`<span class="hafta-badge" style="background:${HAFTA_COLORS[i]}">${HAFTA_NOMS[i]}</span>`).join("")||'<span style="color:#6B7280;font-size:12px">Hech qanday hafta ochilmagan</span>';
+  const muammolar=[];
   if(p.oshqozon) muammolar.push("🫁 Oshqozon");
   if(p.diabet) muammolar.push("🩸 Diabet");
   if(p.uyqusizlik) muammolar.push("😴 Uyqusizlik");
@@ -217,99 +199,163 @@ function renderUserCard(u){
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
         <div>
-          <div style="font-weight:800;font-size:16px;color:#1B4332">${p.ism || "Noma'lum"}</div>
+          <div style="font-weight:800;font-size:16px;color:#1B4332">${p.ism||"Noma'lum"}</div>
           <div style="font-size:11px;color:#6B7280;margin-top:2px">${u.sana} • ${p.jins} • ${p.yosh||"?"}yosh</div>
         </div>
-        <span class="badge ${u.ochikHaftalar.length>0?'active':'new'}">${u.ochikHaftalar.length>0?'Faol':'Yangi'}</span>
+        <span class="badge ${u.ochikHaftalar.length>0?"active":"new"}">${u.ochikHaftalar.length>0?"Faol":"Yangi"}</span>
       </div>
-
       <div class="profil-row">
         <div class="profil-item"><div class="k">Boy / Vazn</div><div class="v">${p.boy||"?"}sm / ${p.vazn||"?"}kg</div></div>
         <div class="profil-item"><div class="k">BMI</div><div class="v">${bmi}</div></div>
         <div class="profil-item"><div class="k">Maqsad</div><div class="v">${p.maqsad||"—"}</div></div>
         <div class="profil-item"><div class="k">Faollik</div><div class="v">${p.faollik||"—"}</div></div>
       </div>
-
       ${muammolar.length>0?`<div style="margin-bottom:8px">${muammolar.map(m=>`<span style="background:#FEF3C7;color:#92400E;border-radius:6px;padding:2px 8px;font-size:11px;margin-right:5px">${m}</span>`).join("")}</div>`:""}
-
-      <div style="margin-bottom:10px">
+      <div style="margin-bottom:8px">
         <div style="font-size:11px;color:#6B7280;margin-bottom:5px;font-weight:600">🔓 OCHIQ HAFTALAR</div>
         ${haftaBadges}
       </div>
-
-      ${progressHtml}
-
-      <div style="margin-top:12px;display:flex;gap:6px">
-        <button class="notify-btn" onclick="alert('Telegram xabar yuborish funksiyasi')">📱 Xabar</button>
-        <button class="notify-btn" onclick="haftaOch('${u.id}')">🔓 Hafta och</button>
+      <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+        <button class="notify-btn" onclick="showTab('kodlar')">🔑 Kod yaratish</button>
         ${u.real?`<button class="delete-btn" onclick="if(confirm('O\\'chirish?')){localStorage.removeItem('soghlom_profil');localStorage.removeItem('ochik_haftalar');loadAllData();}">🗑️ O'chirish</button>`:""}
       </div>
     </div>
   `;
 }
 
-function haftaOch(id){
-  const u = allUsers.find(x=>x.id===id);
-  if(!u) return;
-  const keyods = u.ochikHaftalar.length;
-  if(keyods>=4){alert("Barcha haftalar allaqachon ochiq!");return;}
-  alert(`${u.profil.ism} uchun ${keyods+1}-hafta ochildi!\n\n(Haqiqiy ilovada bu serverga yuboriladi)`);
+function generateKod(haftaIdx){
+  const prefix = HAFTA_PREFIX[haftaIdx];
+  const raqam = Math.floor(100000+Math.random()*900000);
+  return prefix + raqam;
+}
+
+function renderKodlar(){
+  document.getElementById("mainContent").innerHTML = `
+    <div class="sec-title">🔑 Kirish Kodi Yaratish</div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-size:13px;color:#6B7280;margin-bottom:14px;line-height:1.6">
+        Hafta tanlang → Kod yarating → Foydalanuvchiga yuboring.<br>
+        Foydalanuvchi kodni ilovaga kiritadi → Hafta ochiladi.
+      </div>
+      ${[0,1,2,3].map(i=>`
+        <button class="gen-btn" style="background:${HAFTA_COLORS[i]}" onclick="kodYarat(${i})">
+          🔑 ${HAFTA_NOMS[i]} uchun kod yaratish — 399 000 so'm
+        </button>
+      `).join("")}
+    </div>
+
+    <div id="kodNatija"></div>
+
+    <div class="card">
+      <div class="sec-title">📋 Yaratilgan Kodlar tarixi</div>
+      ${yaratilganKodlar.length===0
+        ? `<div class="empty">Hali kod yaratilmagan</div>`
+        : yaratilganKodlar.slice().reverse().map(k=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F3F4F6">
+            <div>
+              <div style="font-weight:800;font-size:16px;color:#1B4332;letter-spacing:2px">${k.kod}</div>
+              <div style="font-size:11px;color:#6B7280">${k.hafta} • ${k.sana}</div>
+            </div>
+            <span style="background:${k.ishlatilgan?"#FEE2E2":"#D1FAE5"};color:${k.ishlatilgan?"#DC2626":"#065F46"};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">
+              ${k.ishlatilgan?"Ishlatilgan":"Faol"}
+            </span>
+          </div>
+        `).join("")
+      }
+    </div>
+  `;
+}
+
+async function kodYarat(haftaIdx){
+  const kod = generateKod(haftaIdx);
+  const sana = new Date().toLocaleString("uz");
+
+  // Saqlash
+  yaratilganKodlar.push({
+    kod:kod,
+    hafta:HAFTA_NOMS[haftaIdx],
+    haftaIdx:haftaIdx,
+    sana:sana,
+    ishlatilgan:false
+  });
+  localStorage.setItem("admin_kodlar", JSON.stringify(yaratilganKodlar));
+  updateStats();
+
+  // Ko'rsatish
+  document.getElementById("kodNatija").innerHTML = `
+    <div class="card" style="border:2px solid ${HAFTA_COLORS[haftaIdx]};margin-bottom:12px">
+      <div style="text-align:center">
+        <div style="font-size:12px;color:#6B7280;margin-bottom:8px">${HAFTA_NOMS[haftaIdx]} uchun kirish kodi:</div>
+        <div class="kod-box">
+          <div class="kod-text">${kod}</div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+          <button class="copy-btn" onclick="navigator.clipboard.writeText('${kod}').then(()=>alert('Nusxa olindi!'))">📋 Nusxa olish</button>
+          <button class="copy-btn" style="background:#0088cc" onclick="telegramYuborish('${kod}','${HAFTA_NOMS[haftaIdx]}')">✈️ Telegramga yuborish</button>
+        </div>
+        <div style="margin-top:10px;font-size:12px;color:#6B7280">
+          Foydalanuvchiga bu kodni yuboring.<br>U ilovaga kiritadi → ${HAFTA_NOMS[haftaIdx]} ochiladi.
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function telegramYuborish(kod, haftaNom){
+  const chatId = prompt("Foydalanuvchining Telegram ID si yoki @username:");
+  if(!chatId) return;
+
+  const msg = `✅ To'lovingiz qabul qilindi!\n\n🌿 Sog'lom Hayot\n📅 ${haftaNom} uchun kirish kodi:\n\n🔑 <code>${kod}</code>\n\nSaytga kiring va "To'lash va kod olish" tugmasini bosib, ushbu kodni kiriting!\n\n🌐 soghlom-hayot.vercel.app`;
+
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({chat_id:chatId, text:msg, parse_mode:"HTML"})
+    });
+    const data = await res.json();
+    if(data.ok){
+      alert("✅ Telegram xabar yuborildi!");
+    } else {
+      alert("❌ Xatolik: " + data.description);
+    }
+  } catch(e){
+    alert("❌ Internet xatosi");
+  }
 }
 
 function renderStats(){
-  const maqsadlar = {};
-  const faolliklar = {};
+  const maqsadlar={};
   allUsers.forEach(u=>{
-    const m = u.profil.maqsad||"Noma'lum";
-    const f = u.profil.faollik||"Noma'lum";
-    maqsadlar[m] = (maqsadlar[m]||0)+1;
-    faolliklar[f] = (faolliklar[f]||0)+1;
+    const m=u.profil.maqsad||"Noma'lum";
+    maqsadlar[m]=(maqsadlar[m]||0)+1;
   });
-
-  const totalHaftalar = allUsers.reduce((s,u)=>s+u.ochikHaftalar.length,0);
-  const avgHafta = allUsers.length ? (totalHaftalar/allUsers.length).toFixed(1) : 0;
-
-  const muammolKishilar = allUsers.filter(u=>u.profil.oshqozon||u.profil.diabet||u.profil.uyqusizlik).length;
-
-  const haftaHisob = [0,1,2,3].map(i=>allUsers.filter(u=>u.ochikHaftalar.includes(i)).length);
+  const haftaHisob=[0,1,2,3].map(i=>allUsers.filter(u=>u.ochikHaftalar.includes(i)).length);
 
   document.getElementById("mainContent").innerHTML = `
-    <div class="sec-title">📊 Umumiy Statistika</div>
-
+    <div class="sec-title">📊 Statistika</div>
     <div class="card" style="margin-bottom:12px">
-      <div style="font-size:12px;font-weight:700;color:#1B4332;margin-bottom:12px">📅 Hafta bo'yicha foydalanuvchilar</div>
+      <div style="font-size:12px;font-weight:700;color:#1B4332;margin-bottom:12px">📅 Hafta bo'yicha</div>
       ${[0,1,2,3].map(i=>`
         <div style="margin-bottom:10px">
           <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-            <span style="font-size:13px;color:#1C1C1E">${HAFTA_NOMS[i]}</span>
+            <span style="font-size:13px">${HAFTA_NOMS[i]}</span>
             <span style="font-size:13px;font-weight:700;color:${HAFTA_COLORS[i]}">${haftaHisob[i]} kishi</span>
           </div>
           <div class="progress-bar"><div class="progress-fill" style="width:${allUsers.length?haftaHisob[i]/allUsers.length*100:0}%;background:${HAFTA_COLORS[i]}"></div></div>
         </div>
       `).join("")}
-      <div style="margin-top:8px;font-size:12px;color:#6B7280">O'rtacha: ${avgHafta} hafta / foydalanuvchi</div>
     </div>
-
     <div class="card" style="margin-bottom:12px">
       <div style="font-size:12px;font-weight:700;color:#1B4332;margin-bottom:12px">🎯 Maqsadlar</div>
       ${Object.entries(maqsadlar).map(([k,v])=>`
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #F3F4F6">
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #F3F4F6">
           <span style="font-size:13px">${k}</span>
           <span style="font-size:13px;font-weight:700;color:#1B4332">${v} ta</span>
         </div>
       `).join("")}
     </div>
-
-    <div class="card" style="margin-bottom:12px">
-      <div style="font-size:12px;font-weight:700;color:#1B4332;margin-bottom:12px">⚡ Faollik darajasi</div>
-      ${Object.entries(faolliklar).map(([k,v])=>`
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #F3F4F6">
-          <span style="font-size:13px">${k}</span>
-          <span style="font-size:13px;font-weight:700;color:#1D4ED8">${v} ta</span>
-        </div>
-      `).join("")}
-    </div>
-
     <div class="card">
       <div style="font-size:12px;font-weight:700;color:#1B4332;margin-bottom:12px">🏥 Sog'liq muammolari</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">
@@ -334,27 +380,28 @@ function renderSettings(){
   document.getElementById("mainContent").innerHTML = `
     <div class="sec-title">⚙️ Sozlamalar</div>
     <div class="card" style="margin-bottom:12px">
-      <div style="font-size:13px;font-weight:700;color:#1B4332;margin-bottom:10px">🔑 Parolni o'zgartirish</div>
-      <input id="newPass" type="password" placeholder="Yangi parol" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid #E5E7EB;font-size:14px;outline:none;box-sizing:border-box;margin-bottom:8px">
-      <button onclick="alert('Parol o\\'zgartirish backend kerak')" style="padding:10px 20px;border-radius:8px;border:none;background:#1B4332;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Saqlash</button>
-    </div>
-    <div class="card" style="margin-bottom:12px">
       <div style="font-size:13px;font-weight:700;color:#1B4332;margin-bottom:10px">💰 Narx</div>
       <div style="font-size:24px;font-weight:800;color:#1B4332;margin-bottom:6px">399 000 so'm</div>
       <div style="font-size:12px;color:#6B7280">Narxni o'zgartirish uchun App.jsx dagi NARX o'zgaruvchisini tahrirlang</div>
     </div>
-    <div class="card">
-      <div style="font-size:13px;font-weight:700;color:#1B4332;margin-bottom:10px">ℹ️ Ilova haqida</div>
-      <div style="font-size:13px;color:#6B7280;line-height:1.7">
-        Sog'lom Hayot — 30 kunlik sog'lom turmush tarzi ilovasi.<br>
-        Foydalanuvchilar: localStorage orqali<br>
-        Deploy: Vercel (soghlom-hayot.vercel.app)<br>
-        GitHub: abdumalikmax-maker/soghlom-hayot
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-size:13px;font-weight:700;color:#1B4332;margin-bottom:10px">🔑 Kod formati</div>
+      <div style="font-size:13px;color:#6B7280;line-height:1.8">
+        <b style="color:#1B4332">SH1</b>XXXXXX → 1-hafta<br>
+        <b style="color:#1D4ED8">SH2</b>XXXXXX → 2-hafta<br>
+        <b style="color:#7C3AED">SH3</b>XXXXXX → 3-hafta<br>
+        <b style="color:#B45309">SH4</b>XXXXXX → 4-hafta
       </div>
     </div>
-    <div style="margin-top:16px">
-      <button onclick="document.getElementById('adminPage').style.display='none';document.getElementById('loginPage').style.display='block'" style="width:100%;padding:12px;border-radius:10px;border:1px solid #E5E7EB;background:#fff;color:#DC2626;font-size:14px;font-weight:600;cursor:pointer">🚪 Chiqish</button>
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-size:13px;font-weight:700;color:#1B4332;margin-bottom:10px">ℹ️ Ilova</div>
+      <div style="font-size:13px;color:#6B7280;line-height:1.7">
+        🌐 soghlom-hayot.vercel.app<br>
+        👨‍💻 abdumalikmax-maker/soghlom-hayot<br>
+        🔐 Admin: /admin.html
+      </div>
     </div>
+    <button onclick="document.getElementById('adminPage').style.display='none';document.getElementById('loginPage').style.display='block'" style="width:100%;padding:12px;border-radius:10px;border:1px solid #E5E7EB;background:#fff;color:#DC2626;font-size:14px;font-weight:600;cursor:pointer">🚪 Chiqish</button>
   `;
 }
 </script>
