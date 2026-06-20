@@ -1,36 +1,9 @@
-import { useState, useEffect, useRef } from "react";
-import { initializeApp } from "firebase/app";
-import {
-  getAuth,
-  GoogleAuthProvider,
-  signInWithRedirect,
-  getRedirectResult,
-  signOut,
-  onAuthStateChanged,
-} from "firebase/auth";
-import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
+import { useState, useEffect } from "react";
 
-// ── FIREBASE CONFIG ──────────────────────────────────────────────────────────
-const firebaseConfig = {
-  apiKey: "AIzaSyDW4tDCId51RaoROBuKEfKLaLm7PLACEHOLDER",
-  authDomain: "soghlom-hayot.firebaseapp.com",
-  projectId: "soghlom-hayot",
-  storageBucket: "soghlom-hayot.firebasestorage.app",
-  messagingSenderId: "321253021051",
-  appId: "1:321253021051:web:7d0ae7663973c1d980d9de",
-  measurementId: "G-DSLDGCZ75H"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-const PR="#1B4332",AC="#52B788",AM="#E9A825",CR="#F8F4EF",CH="#1C1C1E",MU="#6B7280",SU="#FFFFFF",LI="#E8F5EE",DA="#DC2626";
+const PR="#1B4332",AC="#52B788",CR="#F8F4EF",CH="#1C1C1E",MU="#6B7280",SU="#FFFFFF",LI="#E8F5EE",DA="#DC2626";
 const GOALS=["Ozish","Semirish","Vazn saqlash","Mushak yig'ish","Sog'lomlashtirish"];
 const ACT_L=["Kam harakatli","O'rtacha faol","Faol","Juda faol"];
-const DAYS=["Dushanba","Seshanba","Chorshanba","Payshanba","Juma","Shanba","Yakshanba"];
 
-// ── RATSION MA'LUMOTLARI ──────────────────────────────────────────────────────
 const RATSIONLAR=[
   {hafta:1,nom:"1-hafta — Boshlang'ich tozalash",rang:PR,tavsif:"Tana tozalanadi, yallig'lanish kamayadi.",
    bloklar:[
@@ -43,7 +16,7 @@ const RATSIONLAR=[
   {hafta:2,nom:"2-hafta — Vitamin yuklamasi",rang:"#1D4ED8",tavsif:"Vitaminlar qo'shiladi. Immunitet kuchayadi.",
    bloklar:[
     {vaqt:"07:00",nom:"Ertalabki ichimlik",tur:"suv",bandlar:[{emoji:"💧",text:"Iliq suv — 300 ml"},{emoji:"🌿",text:"Rastoropsha — 1 paket"},{emoji:"🟡",text:"Kurkuma — 1 choy qoshiq"},{emoji:"🍎",text:"Olma sirka — 1 choy qoshiq (oshqozon bo'lmasa)"}]},
-    {vaqt:"07:10",nom:"1-ovqat + Vitaminlar",tur:"ovqat",salat:["Bodring — 2 ta","Rukkola — 1 voq","Salat bargi — 1 voq","Avokado — 1 ta","Zaytun moyi — 2 osh qoshiq","Dengiz tuzi"],oqsil:"Yogli baliq — 180-200g\nYoki 6 ta tuxumning FAQAT OQI",qoshimchalar:["💊 D3+K2 — 1 ta (7 kun)","💊 Omega-3 — 1 ta","💊 CoQ10 — 1 ta","💊 Rux 22mg — 1 ta"],keyin:"Sekin yurish — 10-15 daqiqa"},
+    {vaqt:"07:10",nom:"1-ovqat + Vitaminlar",tur:"ovqat",salat:["Bodring — 2 ta","Rukkola — 1 voq","Salat bargi — 1 voq","Avokado — 1 ta","Zaytun moyi — 2 osh qoshiq","Dengiz tuzi"],oqsil:"Yogli baliq — 180-200g\nYoki 6 ta tuxumning FAQAT OQI",qoshimchalar:["💊 D3+K2 — 1 ta","💊 Omega-3 — 1 ta","💊 CoQ10 — 1 ta","💊 Rux 22mg — 1 ta"],keyin:"Sekin yurish — 10-15 daqiqa"},
     {vaqt:"13:30",nom:"Tushki ichimlik",tur:"suv",bandlar:[{emoji:"💧",text:"Suv — 300 ml + rastoropsha + imbir"}]},
     {vaqt:"13:40",nom:"2-ovqat",tur:"ovqat",salat:["Pekin karami — yarim bosh","Bodring — 2 ta","Kinza — 1 voq","Avokado — 1 ta","Zaytun moyi — 2 osh qoshiq","Dengiz tuzi"],oqsil:"Indeyka — 300g yoki baliq — 300g",keyin:"Sekin yurish — 10-15 daqiqa"},
     {vaqt:"20:30",nom:"Kechki ritual",tur:"kechki",bandlar:[{emoji:"🚶",text:"Sayr — 30 daqiqa"},{emoji:"💧",text:"Suv — 200-300 ml"},{emoji:"💊",text:"Magniy glitsinat — 300-400 mg"},{emoji:"🌙",text:"Uyqu — 22:00"}]},
@@ -51,8 +24,8 @@ const RATSIONLAR=[
   {hafta:3,nom:"3-hafta — To'liq rejim",rang:"#7C3AED",tavsif:"Berberin, xrom va barcha vitaminlar.",
    bloklar:[
     {vaqt:"06:30",nom:"Ertalabki start",tur:"suv",bandlar:[{emoji:"💧",text:"Iliq suv — 500 ml"},{emoji:"🌿",text:"Rastoropsha — 1 paket"},{emoji:"🟡",text:"Kurkuma — 1 choy qoshiq"}]},
-    {vaqt:"07:00",nom:"Kichik ichimlik",tur:"suv",bandlar:[{emoji:"💧",text:"Iliq suv — 300 ml"},{emoji:"🍎",text:"Olma sirka — 1 choy qoshiq (oshqozon bo'lmasa)"},{emoji:"💊",text:"Xrom pikolinat 200mkg + Berberin 500mg"}]},
-    {vaqt:"07:30",nom:"1-ovqat + Vitaminlar",tur:"ovqat",salat:["Bodring — 2 ta","Rukkola — 1 voq","Avokado — 1 ta","Zaytun moyi — 2 osh qoshiq","Dengiz tuzi"],oqsil:"Yogli baliq — 180-200g\nYoki 5 ta tuxumning FAQAT OQI",qoshimchalar:["💊 D3+K2 — 1 ta (7 kun)","💊 Omega-3 — 1 ta","💊 CoQ10 — 1 ta","💊 Rux 22mg — 1 ta"],keyin:"Sekin yurish — 10-15 daqiqa"},
+    {vaqt:"07:00",nom:"Kichik ichimlik",tur:"suv",bandlar:[{emoji:"💧",text:"Iliq suv — 300 ml"},{emoji:"🍎",text:"Olma sirka (oshqozon bo'lmasa)"},{emoji:"💊",text:"Xrom pikolinat 200mkg + Berberin 500mg"}]},
+    {vaqt:"07:30",nom:"1-ovqat + Vitaminlar",tur:"ovqat",salat:["Bodring — 2 ta","Rukkola — 1 voq","Avokado — 1 ta","Zaytun moyi — 2 osh qoshiq","Dengiz tuzi"],oqsil:"Yogli baliq — 180-200g\nYoki 5 ta tuxumning FAQAT OQI",qoshimchalar:["💊 D3+K2 — 1 ta","💊 Omega-3 — 1 ta","💊 CoQ10 — 1 ta","💊 Rux 22mg — 1 ta"],keyin:"Sekin yurish — 10-15 daqiqa"},
     {vaqt:"16:00",nom:"2-ovqatdan oldin",tur:"suv",bandlar:[{emoji:"💧",text:"Suv — 300 ml + rastoropsha"},{emoji:"💊",text:"Berberin 500mg (15 daqiqa oldin)"}]},
     {vaqt:"16:30",nom:"2-ovqat",tur:"ovqat",salat:["Pekin karami — yarim bosh","Bodring — 2 ta","Kinza — 1 voq","Avokado — 1 ta","Zaytun moyi — 2 osh qoshiq"],oqsil:"Indeyka — 200g yoki baliq — 200g",qoshimchalar:["💊 Omega-3 — 1 ta","💊 Taurin — 1 ta"],keyin:"Sekin yurish — 10-15 daqiqa"},
     {vaqt:"20:30",nom:"Kechki ritual",tur:"kechki",bandlar:[{emoji:"🚶",text:"Sayr — 20-30 daqiqa"},{emoji:"💧",text:"Suv — 200-300 ml"},{emoji:"💊",text:"Magniy glitsinat — 300-400 mg"},{emoji:"🌙",text:"Uyqu — 22:00"}]},
@@ -68,7 +41,6 @@ const RATSIONLAR=[
    ]},
 ];
 
-// ── SPORT DASTURI ─────────────────────────────────────────────────────────────
 const SPORT=[
   {kun:"Dushanba",vaqt:"07:00-08:00",qism:"Ko'krak + Qorin",tur:"kuch",mashqlar:[
     {nom:"Keng Push-up",emoji:"💪",set:"4 × 15 ta",vizual:["🧍 Qo'llar yelkadan KENG","⬇️ Ko'kragingiz yerga tegay deb turing","⬆️ Kuch bilan itarib ko'taring","🔑 Qorin tarang, bel bukilmasin"],uy:"Polda",zal:"Bench press"},
@@ -97,6 +69,16 @@ const SPORT=[
   {kun:"Yakshanba",vaqt:"Erkin",qism:"Dam + Tiklanish",tur:"dam",mashqlar:[
     {nom:"Sayr",emoji:"🌿",set:"45-60 daqiqa",vizual:["🌄 Tog' yoki parkda","🚶 Sekin, zavqlanib","🌬️ Chuqur nafas"],uy:"Park, bog'",zal:"Tabiat afzal"},
   ]},
+];
+
+const MASLAHATLAR=[
+  {emoji:"🌅",matn:"Ertalab birinchi ish — telefon emas, 500ml iliq suv iching."},
+  {emoji:"🚶",matn:"Ovqatdan keyin 10-15 daqiqa sekin yurish — eng oddiy, eng kuchli dori."},
+  {emoji:"😴",matn:"22:00 da uxlash — o'sish gormoni shu vaqtda eng ko'p chiqadi."},
+  {emoji:"🌿",matn:"Rastoropsha jigarni kundalik toksinlardan tozalaydi."},
+  {emoji:"💊",matn:"Magniy 300 dan ortiq ferment reaktsiyasida ishtirok etadi."},
+  {emoji:"🫁",matn:"4-4-6 nafas: stressni 1 daqiqada pasaytiradi."},
+  {emoji:"💧",matn:"Miyangiz 75% suvdan iborat — har soatda suv iching."},
 ];
 
 function RatsionBlok({b,oshqozon}){
@@ -172,7 +154,6 @@ function SportTab(){
                 </div>
                 {openEx===k&&(
                   <div style={{borderTop:"1px solid "+bd,padding:"12px 13px",background:"#fff"}}>
-                    <div style={{fontWeight:700,fontSize:11,color:tc,marginBottom:8,textTransform:"uppercase"}}>📋 QANDAY BAJARISH</div>
                     {m.vizual.map((v,vi)=>(
                       <div key={vi} style={{display:"flex",alignItems:"flex-start",gap:8,padding:"5px 0",borderBottom:vi<m.vizual.length-1?"1px solid #F3F4F6":"none"}}>
                         <span style={{fontSize:14,minWidth:22}}>{v.slice(0,2)}</span>
@@ -183,7 +164,6 @@ function SportTab(){
                       <div style={{background:"#F0FDF4",borderRadius:9,padding:"9px 10px"}}><div style={{fontSize:11,fontWeight:700,color:PR,marginBottom:4}}>🏠 UY</div><div style={{fontSize:12,color:CH}}>{m.uy}</div></div>
                       <div style={{background:"#EFF6FF",borderRadius:9,padding:"9px 10px"}}><div style={{fontSize:11,fontWeight:700,color:"#1D4ED8",marginBottom:4}}>🏋️ ZAL</div><div style={{fontSize:12,color:CH}}>{m.zal}</div></div>
                     </div>
-                    <div style={{marginTop:10,background:tc+"18",borderRadius:8,padding:"8px 11px",display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:16}}>🎯</span><span style={{fontSize:13,fontWeight:700,color:tc}}>{m.set}</span></div>
                   </div>
                 )}
               </div>
@@ -200,18 +180,18 @@ function NafasTab(){
   const [bosqich,setBosqich]=useState(0);
   const [hisoblagich,setHisoblagich]=useState(0);
   const [sikl,setSikl]=useState(0);
-  const timerRef=useRef(null);
+  const timerRef=useState(null);
   const NAFAS=[{nom:"Nafas oling",davom:4,rang:"#0EA5E9",emoji:"🌬️"},{nom:"Ushlab turing",davom:4,rang:"#7C3AED",emoji:"🔒"},{nom:"Chiqaring",davom:6,rang:"#10B981",emoji:"💨"}];
   const boshlash=()=>{
     setHolat("ishlaydi");setBosqich(0);setHisoblagich(NAFAS[0].davom);setSikl(0);
     let ph=0,cn=NAFAS[0].davom,cl=0;
-    timerRef.current=setInterval(()=>{
+    timerRef[1](setInterval(()=>{
       cn--;
-      if(cn<=0){ph=(ph+1)%3;if(ph===0)cl++;if(cl>=3){clearInterval(timerRef.current);setHolat("tugadi");return;}cn=NAFAS[ph].davom;}
+      if(cn<=0){ph=(ph+1)%3;if(ph===0)cl++;if(cl>=3){clearInterval(timerRef[0]);setHolat("tugadi");return;}cn=NAFAS[ph].davom;}
       setBosqich(ph);setHisoblagich(cn);setSikl(cl);
-    },1000);
+    },1000));
   };
-  const toxtatish=()=>{clearInterval(timerRef.current);setHolat("tayyor");};
+  const toxtatish=()=>{clearInterval(timerRef[0]);setHolat("tayyor");};
   const cur=NAFAS[bosqich];
   return(
     <div>
@@ -232,7 +212,7 @@ function SuvTab(){
   return(
     <div>
       <div style={{fontWeight:700,fontSize:14,color:PR,marginBottom:12}}>💧 Kunlik Suv Hisoblagich</div>
-      <div style={{background:SU,borderRadius:14,padding:16,marginBottom:14,boxShadow:"0 1px 4px rgba(0,0,0,0.06)"}}>
+      <div style={{background:SU,borderRadius:14,padding:16,marginBottom:14}}>
         <div style={{textAlign:"center",marginBottom:14}}>
           <div style={{width:100,height:100,borderRadius:"50%",background:"#0EA5E9",margin:"0 auto 12px",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column"}}>
             <div style={{fontSize:36,fontWeight:900,color:"#fff"}}>{stakan}</div>
@@ -277,7 +257,7 @@ function ProgressTab(){
           <button key={i} onClick={()=>setSel(i)} style={{flex:1,padding:"9px 4px",borderRadius:10,border:"2px solid "+(sel===i?"#B45309":"#E5E7EB"),background:sel===i?"#B45309":SU,color:sel===i?"#fff":CH,cursor:"pointer",fontSize:11,fontWeight:sel===i?700:400}}>{i+1}-hafta</button>
         ))}
       </div>
-      <div style={{background:SU,borderRadius:14,padding:14,boxShadow:"0 1px 4px rgba(0,0,0,0.06)"}}>
+      <div style={{background:SU,borderRadius:14,padding:14}}>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
           <div><div style={{fontSize:11,fontWeight:600,color:MU,marginBottom:4}}>⚖️ Vazn (kg)</div><input type="number" placeholder="82.5" value={w.vazn} onChange={e=>upd("vazn",e.target.value)} style={inp2}/></div>
           <div><div style={{fontSize:11,fontWeight:600,color:MU,marginBottom:4}}>📏 Bel (sm)</div><input type="number" placeholder="88" value={w.bel} onChange={e=>upd("bel",e.target.value)} style={inp2}/></div>
@@ -295,288 +275,159 @@ function ProgressTab(){
   );
 }
 
-const MASLAHATLAR=[
-  {emoji:"🌅",matn:"Ertalab birinchi ish — telefon emas, 500ml iliq suv iching."},
-  {emoji:"🚶",matn:"Ovqatdan keyin 10-15 daqiqa sekin yurish — eng oddiy, eng kuchli dori."},
-  {emoji:"😴",matn:"22:00 da uxlash — o'sish gormoni shu vaqtda eng ko'p chiqadi."},
-  {emoji:"🌿",matn:"Rastoropsha jigarni kundalik toksinlardan tozalaydi."},
-  {emoji:"💊",matn:"Magniy 300 dan ortiq ferment reaktsiyasida ishtirok etadi."},
-  {emoji:"🫁",matn:"4-4-6 nafas: stressni 1 daqiqada pasaytiradi."},
-  {emoji:"💧",matn:"Miyangiz 75% suvdan iborat — har soatda suv iching."},
-];
-
-// ── GOOGLE LOGIN ──────────────────────────────────────────────────────────────
-function GoogleLogin({ onSuccess }) {
-  const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState("");
-
-  const handleGoogle = async () => {
-    setLoading(true); setErr("");
-    try {
-      const provider = new GoogleAuthProvider();
-      await signInWithRedirect(auth, provider);
-    } catch (e) {
-      setErr("Google bilan kirishda xatolik. Qayta urinib ko'ring.");
-      setLoading(false);
-    }
+// Profil sahifasi
+function ProfilSahifasi({onSave}){
+  const [form,setForm]=useState({ism:"",jins:"Erkak",yosh:"",boy:"",vazn:"",bel:"",faollik:ACT_L[1],maqsad:"Ozish",oshqozon:false,diabet:false,uyqusizlik:false});
+  const [err,setErr]=useState("");
+  const inp={width:"100%",padding:"12px 14px",borderRadius:10,border:"1.5px solid #E5E7EB",fontSize:15,color:CH,background:CR,outline:"none",boxSizing:"border-box",marginBottom:10};
+  const save=()=>{
+    if(!form.ism){setErr("Ismingizni kiriting");return;}
+    localStorage.setItem("soghlom_profil",JSON.stringify(form));
+    onSave(form);
   };
-
-  return (
-    <div style={{ minHeight: "100vh", background: CR, fontFamily: "system-ui,-apple-system,sans-serif" }}>
-      <div style={{ background: PR, padding: "60px 20px 40px", textAlign: "center" }}>
-        <div style={{ fontSize: 56, marginBottom: 12 }}>🌿</div>
-        <div style={{ color: "#fff", fontWeight: 800, fontSize: 26 }}>Sog'lom Hayot</div>
-        <div style={{ color: AC, fontSize: 14, marginTop: 8 }}>30 kunlik sog'lom hayot dasturi</div>
+  return(
+    <div style={{minHeight:"100vh",background:CR,fontFamily:"system-ui,-apple-system,sans-serif"}}>
+      <div style={{background:PR,padding:"30px 20px 20px",textAlign:"center"}}>
+        <div style={{fontSize:40,marginBottom:8}}>🌿</div>
+        <div style={{color:"#fff",fontWeight:800,fontSize:22}}>Sog'lom Hayot</div>
+        <div style={{color:AC,fontSize:13,marginTop:4}}>Ma'lumotlaringizni kiriting</div>
       </div>
-      <div style={{ maxWidth: 380, margin: "0 auto", padding: "40px 20px" }}>
-        <div style={{ background: SU, borderRadius: 20, padding: 28, boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}>
-          <div style={{ fontWeight: 800, fontSize: 22, color: PR, marginBottom: 8, textAlign: "center" }}>Kirish</div>
-          <div style={{ fontSize: 14, color: MU, textAlign: "center", marginBottom: 28, lineHeight: 1.5 }}>
-            Google hisobingiz bilan kiring
+      <div style={{maxWidth:500,margin:"0 auto",padding:"18px 14px"}}>
+        <div style={{background:SU,borderRadius:16,padding:"17px 15px",boxShadow:"0 2px 10px rgba(0,0,0,0.07)"}}>
+          {err&&<div style={{background:"#FEF2F2",border:"1px solid #FCA5A5",borderRadius:9,padding:"9px 12px",color:DA,fontSize:13,marginBottom:12}}>{err}</div>}
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+            <div><div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:5}}>Ism</div><input style={{...inp,marginBottom:0}} placeholder="Jasur" value={form.ism} onChange={e=>setForm(p=>({...p,ism:e.target.value}))}/></div>
+            <div><div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:5}}>Jins</div><select style={{...inp,marginBottom:0}} value={form.jins} onChange={e=>setForm(p=>({...p,jins:e.target.value}))}><option>Erkak</option><option>Ayol</option></select></div>
           </div>
-          {err && <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 10, padding: "10px 14px", color: DA, fontSize: 13, marginBottom: 16 }}>{err}</div>}
-          <button
-            onClick={handleGoogle}
-            disabled={loading}
-            style={{
-              width: "100%", padding: "16px", borderRadius: 14, border: "2px solid #E5E7EB",
-              background: SU, color: CH, fontSize: 16, fontWeight: 600,
-              cursor: loading ? "default" : "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 12,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.06)"
-            }}
-          >
-            <span style={{ fontSize: 22 }}>G</span>
-            {loading ? "Kirilmoqda..." : "Google bilan kirish"}
+          <div style={{height:10}}/>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
+            <div><div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:5}}>Yosh</div><input style={{...inp,marginBottom:0}} type="number" placeholder="28" value={form.yosh} onChange={e=>setForm(p=>({...p,yosh:e.target.value}))}/></div>
+            <div><div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:5}}>Boy (sm)</div><input style={{...inp,marginBottom:0}} type="number" placeholder="175" value={form.boy} onChange={e=>setForm(p=>({...p,boy:e.target.value}))}/></div>
+            <div><div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:5}}>Vazn (kg)</div><input style={{...inp,marginBottom:0}} type="number" placeholder="75" value={form.vazn} onChange={e=>setForm(p=>({...p,vazn:e.target.value}))}/></div>
+          </div>
+          <div style={{height:10}}/>
+          <div><div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:5}}>Bel aylanasi (sm)</div><input style={inp} type="number" placeholder="88" value={form.bel} onChange={e=>setForm(p=>({...p,bel:e.target.value}))}/></div>
+          <div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:8}}>Maqsad</div>
+          <div style={{display:"flex",gap:7,flexWrap:"wrap",marginBottom:14}}>
+            {GOALS.map(g=><button key={g} onClick={()=>setForm(p=>({...p,maqsad:g}))} style={{padding:"8px 14px",borderRadius:20,border:"2px solid "+(form.maqsad===g?PR:"#E5E7EB"),background:form.maqsad===g?PR:SU,color:form.maqsad===g?"#fff":CH,cursor:"pointer",fontSize:13}}>{g}</button>)}
+          </div>
+          <div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:8}}>Faollik darajasi</div>
+          {ACT_L.map(a=><button key={a} onClick={()=>setForm(p=>({...p,faollik:a}))} style={{display:"block",width:"100%",marginBottom:6,padding:"9px 13px",borderRadius:9,border:"2px solid "+(form.faollik===a?PR:"#E5E7EB"),background:form.faollik===a?PR:SU,color:form.faollik===a?"#fff":CH,cursor:"pointer",fontSize:13,textAlign:"left"}}>{a}</button>)}
+          <div style={{fontSize:13,fontWeight:600,color:PR,marginBottom:8,marginTop:4}}>Muammolar bormi?</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7,marginBottom:16}}>
+            {[["oshqozon","🫁 Oshqozon"],["diabet","🩸 Diabet"],["uyqusizlik","😴 Uyqusizlik"]].map(([k,l])=>(
+              <button key={k} onClick={()=>setForm(p=>({...p,[k]:!p[k]}))} style={{display:"flex",alignItems:"center",gap:6,padding:"9px 10px",borderRadius:9,border:"2px solid "+(form[k]?AC:"#E5E7EB"),background:form[k]?LI:SU,cursor:"pointer",fontSize:12,color:form[k]?PR:CH}}>
+                <span>{form[k]?"✓":"○"}</span>{l}
+              </button>
+            ))}
+          </div>
+          <button onClick={save} style={{width:"100%",padding:"14px",borderRadius:13,border:"none",background:"linear-gradient(135deg,"+PR+","+AC+")",color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer"}}>
+            ✅ Dasturni boshlash
           </button>
-          <div style={{ marginTop: 20, background: LI, borderRadius: 10, padding: "12px 14px", fontSize: 12, color: PR, lineHeight: 1.6 }}>
-            🔒 Xavfsiz kirish. Shaxsiy ma'lumotlaringiz himoyalangan.
-          </div>
         </div>
       </div>
     </div>
   );
 }
 
-// ── ASOSIY ILOVA ──────────────────────────────────────────────────────────────
-export default function App() {
-  const [screen, setScreen] = useState("login"); // login | profile | main
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
-  const [authLoading, setAuthLoading] = useState(false);
-  const [authErr, setAuthErr] = useState("");
-  const [appLoading, setAppLoading] = useState(true);
+export default function App(){
+  const [profile,setProfile]=useState(null);
+  const [loading,setLoading]=useState(true);
+  const [hafta,setHafta]=useState(0);
+  const [tab,setTab]=useState("ratsion");
+  const [maslahatIdx,setMaslahatIdx]=useState(0);
+  const [oshqozon,setOshqozon]=useState(false);
 
-  const [profForm, setProfForm] = useState({
-    ism: "", jins: "Erkak", yosh: "", boy: "", vazn: "", bel: "",
-    faollik: ACT_L[1], maqsad: "Ozish",
-    oshqozon: false, diabet: false, uyqusizlik: false,
-  });
-
-  const [hafta, setHafta] = useState(0);
-  const [tab, setTab] = useState("ratsion");
-  const [maslahatIdx, setMaslahatIdx] = useState(0);
-  const [oshqozon, setOshqozon] = useState(false);
-
-  const inp = {
-    width: "100%", padding: "12px 14px", borderRadius: 10,
-    border: "1.5px solid #E5E7EB", fontSize: 15, color: CH,
-    background: CR, outline: "none", boxSizing: "border-box", marginBottom: 10
-  };
-
-  // Auth state listener
-  useEffect(() => {
-    // Redirect natijasini tekshirish
-    getRedirectResult(auth).then(async (result) => {
-      if (result?.user) {
-        const u = result.user;
-        setUser(u);
-        const snap = await getDoc(doc(db, "users", u.uid));
-        if (snap.exists()) {
-          setProfile(snap.data());
-          setOshqozon(snap.data().oshqozon || false);
-          setScreen("main");
-        } else {
-          setProfForm(p => ({ ...p, ism: u.displayName || "" }));
-          setScreen("profile");
-        }
-        setAppLoading(false);
-        return;
-      }
-    }).catch(() => {});
-
-    const unsub = onAuthStateChanged(auth, async (u) => {
-      if (u) {
-        setUser(u);
-        const snap = await getDoc(doc(db, "users", u.uid));
-        if (snap.exists()) {
-          setProfile(snap.data());
-          setOshqozon(snap.data().oshqozon || false);
-          setScreen("main");
-        } else {
-          setScreen("profile");
-        }
-      } else {
-        setUser(null);
-        setProfile(null);
-        setScreen("login");
-      }
-      setAppLoading(false);
-    });
-    return () => unsub();
-  }, []);
-
-  const handleGoogleSuccess = async (firebaseUser) => {
-    setUser(firebaseUser);
-    const snap = await getDoc(doc(db, "users", firebaseUser.uid));
-    if (snap.exists()) {
-      setProfile(snap.data());
-      setOshqozon(snap.data().oshqozon || false);
-      setScreen("main");
-    } else {
-      setProfForm(p => ({ ...p, ism: firebaseUser.displayName || "" }));
-      setScreen("profile");
+  useEffect(()=>{
+    const saved=localStorage.getItem("soghlom_profil");
+    if(saved){
+      const p=JSON.parse(saved);
+      setProfile(p);
+      setOshqozon(p.oshqozon||false);
     }
+    setLoading(false);
+  },[]);
+
+  const handleSave=(p)=>{
+    setProfile(p);
+    setOshqozon(p.oshqozon||false);
   };
 
-  const handleSaveProfile = async () => {
-    if (!profForm.ism) { setAuthErr("Ismingizni kiriting"); return; }
-    setAuthLoading(true);
-    try {
-      await setDoc(doc(db, "users", user.uid), {
-        ...profForm, uid: user.uid,
-        phone: user.phoneNumber,
-        createdAt: new Date().toISOString()
-      });
-      setProfile(profForm);
-      setOshqozon(profForm.oshqozon);
-      setScreen("main");
-    } catch (e) { setAuthErr("Saqlashda xatolik"); }
-    setAuthLoading(false);
+  const handleReset=()=>{
+    localStorage.removeItem("soghlom_profil");
+    setProfile(null);
   };
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    setUser(null); setProfile(null); setScreen("login");
-  };
-
-  const HAFTA_RANGLARI = [PR, "#1D4ED8", "#7C3AED", "#B45309"];
-
-  if (appLoading) return (
-    <div style={{ minHeight: "100vh", background: CR, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 16 }}>
-      <div style={{ fontSize: 48 }}>🌿</div>
-      <div style={{ fontSize: 16, color: PR, fontWeight: 700 }}>Yuklanmoqda...</div>
+  if(loading) return(
+    <div style={{minHeight:"100vh",background:CR,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16}}>
+      <div style={{fontSize:48}}>🌿</div>
+      <div style={{fontSize:16,color:PR,fontWeight:700}}>Yuklanmoqda...</div>
     </div>
   );
 
-  if (screen === "login") return <GoogleLogin onSuccess={handleGoogleSuccess} />;
+  if(!profile) return <ProfilSahifasi onSave={handleSave}/>;
 
-  // ── PROFIL TO'LDIRISH ──
-  if (screen === "profile") return (
-    <div style={{ minHeight: "100vh", background: CR, fontFamily: "system-ui,-apple-system,sans-serif" }}>
-      <div style={{ background: PR, padding: "16px 18px" }}>
-        <div style={{ color: "#fff", fontWeight: 700, fontSize: 17 }}>🌿 Ma'lumotlaringiz</div>
-        <div style={{ color: AC, fontSize: 12, marginTop: 2 }}>Shaxsiy dastur tayyorlash uchun</div>
-      </div>
-      <div style={{ maxWidth: 500, margin: "0 auto", padding: "18px 14px" }}>
-        <div style={{ background: SU, borderRadius: 16, padding: "17px 15px", boxShadow: "0 2px 10px rgba(0,0,0,0.07)" }}>
-          {authErr && <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 9, padding: "9px 12px", color: DA, fontSize: 13, marginBottom: 12 }}>{authErr}</div>}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <div><div style={{ fontSize: 13, fontWeight: 600, color: CH, marginBottom: 5 }}>Ism</div><input style={{ ...inp, marginBottom: 0 }} placeholder="Jasur" value={profForm.ism} onChange={e => setProfForm(p => ({ ...p, ism: e.target.value }))} /></div>
-            <div><div style={{ fontSize: 13, fontWeight: 600, color: CH, marginBottom: 5 }}>Jins</div><select style={{ ...inp, marginBottom: 0 }} value={profForm.jins} onChange={e => setProfForm(p => ({ ...p, jins: e.target.value }))}><option>Erkak</option><option>Ayol</option></select></div>
-          </div>
-          <div style={{ height: 10 }} />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-            <div><div style={{ fontSize: 13, fontWeight: 600, color: CH, marginBottom: 5 }}>Yosh</div><input style={{ ...inp, marginBottom: 0 }} type="number" placeholder="28" value={profForm.yosh} onChange={e => setProfForm(p => ({ ...p, yosh: e.target.value }))} /></div>
-            <div><div style={{ fontSize: 13, fontWeight: 600, color: CH, marginBottom: 5 }}>Boy (sm)</div><input style={{ ...inp, marginBottom: 0 }} type="number" placeholder="175" value={profForm.boy} onChange={e => setProfForm(p => ({ ...p, boy: e.target.value }))} /></div>
-            <div><div style={{ fontSize: 13, fontWeight: 600, color: CH, marginBottom: 5 }}>Vazn (kg)</div><input style={{ ...inp, marginBottom: 0 }} type="number" placeholder="75" value={profForm.vazn} onChange={e => setProfForm(p => ({ ...p, vazn: e.target.value }))} /></div>
-          </div>
-          <div style={{ height: 10 }} />
-          <div><div style={{ fontSize: 13, fontWeight: 600, color: CH, marginBottom: 5 }}>Bel aylanasi (sm)</div><input style={inp} type="number" placeholder="88" value={profForm.bel} onChange={e => setProfForm(p => ({ ...p, bel: e.target.value }))} /></div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: CH, marginBottom: 8 }}>Maqsad</div>
-          <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginBottom: 14 }}>
-            {GOALS.map(g => <button key={g} onClick={() => setProfForm(p => ({ ...p, maqsad: g }))} style={{ padding: "8px 14px", borderRadius: 20, border: "2px solid " + (profForm.maqsad === g ? PR : "#E5E7EB"), background: profForm.maqsad === g ? PR : SU, color: profForm.maqsad === g ? "#fff" : CH, cursor: "pointer", fontSize: 13, fontWeight: profForm.maqsad === g ? 700 : 400 }}>{g}</button>)}
-          </div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: CH, marginBottom: 8 }}>Faollik darajasi</div>
-          {ACT_L.map(a => <button key={a} onClick={() => setProfForm(p => ({ ...p, faollik: a }))} style={{ display: "block", width: "100%", marginBottom: 6, padding: "9px 13px", borderRadius: 9, border: "2px solid " + (profForm.faollik === a ? PR : "#E5E7EB"), background: profForm.faollik === a ? PR : SU, color: profForm.faollik === a ? "#fff" : CH, cursor: "pointer", fontSize: 13, textAlign: "left", fontWeight: profForm.faollik === a ? 700 : 400 }}>{a}</button>)}
-          <div style={{ fontSize: 13, fontWeight: 600, color: PR, marginBottom: 8, marginTop: 4 }}>Muammolar bormi?</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7, marginBottom: 16 }}>
-            {[["oshqozon", "🫁 Oshqozon"], ["diabet", "🩸 Qandli diabet"], ["uyqusizlik", "😴 Uyqusizlik"]].map(([k, l]) => (
-              <button key={k} onClick={() => setProfForm(p => ({ ...p, [k]: !p[k] }))} style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 10px", borderRadius: 9, border: "2px solid " + (profForm[k] ? AC : "#E5E7EB"), background: profForm[k] ? LI : SU, cursor: "pointer", fontSize: 12, fontWeight: profForm[k] ? 700 : 400, color: profForm[k] ? PR : CH }}>
-                <span>{profForm[k] ? "✓" : "○"}</span>{l}
-              </button>
-            ))}
-          </div>
-          <button onClick={handleSaveProfile} disabled={authLoading} style={{ width: "100%", padding: "14px", borderRadius: 13, border: "none", background: "linear-gradient(135deg," + PR + "," + AC + ")", color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 14px rgba(27,67,50,0.35)" }}>
-            {authLoading ? "Saqlanmoqda..." : "✅ Dasturni boshlash"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  const HAFTA_RANGLARI=[PR,"#1D4ED8","#7C3AED","#B45309"];
+  const r=RATSIONLAR[hafta];
 
-  // ── ASOSIY EKRAN ──
-  const r = RATSIONLAR[hafta];
-  return (
-    <div style={{ minHeight: "100vh", background: CR, fontFamily: "system-ui,-apple-system,sans-serif" }}>
-      <div style={{ background: r.rang, padding: "14px 18px", position: "sticky", top: 0, zIndex: 10, transition: "background 0.3s" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 22 }}>🌿</span>
+  return(
+    <div style={{minHeight:"100vh",background:CR,fontFamily:"system-ui,-apple-system,sans-serif"}}>
+      <div style={{background:r.rang,padding:"14px 18px",position:"sticky",top:0,zIndex:10}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <span style={{fontSize:22}}>🌿</span>
             <div>
-              <div style={{ color: "#fff", fontWeight: 700, fontSize: 16 }}>Sog'lom Hayot</div>
-              <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 11 }}>{profile?.ism ? "Salom, " + profile.ism + "!" : "30 kunlik dastur"}</div>
+              <div style={{color:"#fff",fontWeight:700,fontSize:16}}>Sog'lom Hayot</div>
+              <div style={{color:"rgba(255,255,255,0.75)",fontSize:11}}>Salom, {profile.ism}!</div>
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 20, padding: "4px 8px", display: "flex", alignItems: "center", gap: 5, cursor: "pointer" }} onClick={() => setOshqozon(o => !o)}>
-              <div style={{ width: 24, height: 14, borderRadius: 7, background: oshqozon ? "#EF4444" : "rgba(255,255,255,0.4)", position: "relative" }}>
-                <div style={{ position: "absolute", width: 10, height: 10, borderRadius: 5, background: "#fff", top: 2, left: oshqozon ? 12 : 2, transition: "left 0.2s" }} />
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <div style={{background:"rgba(255,255,255,0.15)",borderRadius:20,padding:"4px 8px",display:"flex",alignItems:"center",gap:5,cursor:"pointer"}} onClick={()=>setOshqozon(o=>!o)}>
+              <div style={{width:24,height:14,borderRadius:7,background:oshqozon?"#EF4444":"rgba(255,255,255,0.4)",position:"relative"}}>
+                <div style={{position:"absolute",width:10,height:10,borderRadius:5,background:"#fff",top:2,left:oshqozon?12:2,transition:"left 0.2s"}}/>
               </div>
-              <span style={{ color: "rgba(255,255,255,0.9)", fontSize: 10 }}>Oshqozon</span>
+              <span style={{color:"rgba(255,255,255,0.9)",fontSize:10}}>Oshqozon</span>
             </div>
-            <button onClick={handleLogout} style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 8, padding: "6px 10px", color: "#fff", fontSize: 11, cursor: "pointer" }}>Chiqish</button>
+            <button onClick={handleReset} style={{background:"rgba(255,255,255,0.15)",border:"none",borderRadius:8,padding:"6px 10px",color:"#fff",fontSize:11,cursor:"pointer"}}>Chiqish</button>
           </div>
         </div>
       </div>
 
-      <div style={{ maxWidth: 680, margin: "0 auto", padding: "16px 14px" }}>
-        <div style={{ background: "linear-gradient(135deg," + PR + ",#2D6A4F)", borderRadius: 14, padding: "14px 16px", marginBottom: 14, cursor: "pointer" }} onClick={() => setMaslahatIdx(i => (i + 1) % MASLAHATLAR.length)}>
-          <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 10, fontWeight: 600, marginBottom: 6 }}>💡 KUNLIK MASLAHAT</div>
-          <div style={{ fontSize: 22, marginBottom: 6 }}>{MASLAHATLAR[maslahatIdx].emoji}</div>
-          <div style={{ color: "#fff", fontSize: 13, lineHeight: 1.6 }}>{MASLAHATLAR[maslahatIdx].matn}</div>
+      <div style={{maxWidth:680,margin:"0 auto",padding:"16px 14px"}}>
+        <div style={{background:"linear-gradient(135deg,"+PR+",#2D6A4F)",borderRadius:14,padding:"14px 16px",marginBottom:14,cursor:"pointer"}} onClick={()=>setMaslahatIdx(i=>(i+1)%MASLAHATLAR.length)}>
+          <div style={{color:"rgba(255,255,255,0.6)",fontSize:10,fontWeight:600,marginBottom:6}}>💡 KUNLIK MASLAHAT</div>
+          <div style={{fontSize:22,marginBottom:6}}>{MASLAHATLAR[maslahatIdx].emoji}</div>
+          <div style={{color:"#fff",fontSize:13,lineHeight:1.6}}>{MASLAHATLAR[maslahatIdx].matn}</div>
         </div>
 
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 12, color: MU, marginBottom: 8, fontWeight: 600 }}>📅 Hafta tanlang:</div>
-          <div style={{ display: "flex", gap: 6 }}>
-            {RATSIONLAR.map((x, i) => (
-              <button key={i} onClick={() => setHafta(i)} style={{ flex: 1, padding: "10px 4px", borderRadius: 11, border: "2px solid " + (hafta === i ? HAFTA_RANGLARI[i] : "#E5E7EB"), background: hafta === i ? HAFTA_RANGLARI[i] : SU, color: hafta === i ? "#fff" : CH, cursor: "pointer", textAlign: "center" }}>
-                <div style={{ fontSize: 14, fontWeight: 800 }}>{i + 1}</div>
-                <div style={{ fontSize: 9, marginTop: 2, color: hafta === i ? "rgba(255,255,255,0.8)" : MU }}>Hafta</div>
+        <div style={{marginBottom:14}}>
+          <div style={{fontSize:12,color:MU,marginBottom:8,fontWeight:600}}>📅 Hafta tanlang:</div>
+          <div style={{display:"flex",gap:6}}>
+            {RATSIONLAR.map((x,i)=>(
+              <button key={i} onClick={()=>setHafta(i)} style={{flex:1,padding:"10px 4px",borderRadius:11,border:"2px solid "+(hafta===i?HAFTA_RANGLARI[i]:"#E5E7EB"),background:hafta===i?HAFTA_RANGLARI[i]:SU,color:hafta===i?"#fff":CH,cursor:"pointer",textAlign:"center"}}>
+                <div style={{fontSize:14,fontWeight:800}}>{i+1}</div>
+                <div style={{fontSize:9,marginTop:2,color:hafta===i?"rgba(255,255,255,0.8)":MU}}>Hafta</div>
               </button>
             ))}
           </div>
         </div>
 
-        <div style={{ background: "linear-gradient(135deg," + r.rang + "," + r.rang + "CC)", borderRadius: 14, padding: "14px 16px", marginBottom: 14 }}>
-          <div style={{ color: "#fff", fontWeight: 800, fontSize: 15, marginBottom: 4 }}>{r.nom}</div>
-          <div style={{ color: "rgba(255,255,255,0.85)", fontSize: 12 }}>{r.tavsif}</div>
+        <div style={{background:"linear-gradient(135deg,"+r.rang+","+r.rang+"CC)",borderRadius:14,padding:"14px 16px",marginBottom:14}}>
+          <div style={{color:"#fff",fontWeight:800,fontSize:15,marginBottom:4}}>{r.nom}</div>
+          <div style={{color:"rgba(255,255,255,0.85)",fontSize:12}}>{r.tavsif}</div>
         </div>
 
-        <div style={{ display: "flex", gap: 4, marginBottom: 12, overflowX: "auto", paddingBottom: 2 }}>
-          {[["ratsion", "🍽️"], ["sport", "🏋️"], ["suv", "💧"], ["nafas", "🫁"], ["progress", "📊"]].map(([x, l]) => (
-            <button key={x} onClick={() => setTab(x)} style={{ minWidth: 46, padding: "9px 8px", borderRadius: 11, border: "none", background: tab === x ? r.rang : SU, color: tab === x ? "#fff" : MU, cursor: "pointer", fontSize: 16, fontWeight: tab === x ? 700 : 400, boxShadow: "0 1px 3px rgba(0,0,0,0.07)", flexShrink: 0 }}>
-              {l}
-            </button>
+        <div style={{display:"flex",gap:4,marginBottom:12,overflowX:"auto",paddingBottom:2}}>
+          {[["ratsion","🍽️"],["sport","🏋️"],["suv","💧"],["nafas","🫁"],["progress","📊"]].map(([x,l])=>(
+            <button key={x} onClick={()=>setTab(x)} style={{minWidth:46,padding:"9px 8px",borderRadius:11,border:"none",background:tab===x?r.rang:SU,color:tab===x?"#fff":MU,cursor:"pointer",fontSize:16,boxShadow:"0 1px 3px rgba(0,0,0,0.07)",flexShrink:0}}>{l}</button>
           ))}
         </div>
 
-        {tab === "ratsion" && <div>{r.bloklar.map((b, i) => <RatsionBlok key={i} b={b} oshqozon={oshqozon} />)}</div>}
-        {tab === "sport" && <SportTab />}
-        {tab === "suv" && <SuvTab />}
-        {tab === "nafas" && <NafasTab />}
-        {tab === "progress" && <ProgressTab />}
+        {tab==="ratsion"&&<div>{r.bloklar.map((b,i)=><RatsionBlok key={i} b={b} oshqozon={oshqozon}/>)}</div>}
+        {tab==="sport"&&<SportTab/>}
+        {tab==="suv"&&<SuvTab/>}
+        {tab==="nafas"&&<NafasTab/>}
+        {tab==="progress"&&<ProgressTab/>}
       </div>
     </div>
   );
