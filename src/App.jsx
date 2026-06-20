@@ -4,6 +4,10 @@ const PR="#1B4332",AC="#52B788",CR="#F8F4EF",CH="#1C1C1E",MU="#6B7280",SU="#FFFF
 const GOALS=["Ozish","Semirish","Vazn saqlash","Mushak yig'ish","Sog'lomlashtirish"];
 const ACT_L=["Kam harakatli","O'rtacha faol","Faol","Juda faol"];
 
+const BOT_TOKEN = "8740349246:AAEGvi4m6xhmmxazWI6z7VEzuEcy820kvz0";
+const ADMIN_ID = "1364027533";
+const NARX = 399000;
+
 const RATSIONLAR=[
   {hafta:1,nom:"1-hafta — Boshlang'ich tozalash",rang:PR,tavsif:"Tana tozalanadi, yallig'lanish kamayadi.",
    bloklar:[
@@ -75,7 +79,7 @@ const MASLAHATLAR=[
   {emoji:"🌅",matn:"Ertalab birinchi ish — telefon emas, 500ml iliq suv iching."},
   {emoji:"🚶",matn:"Ovqatdan keyin 10-15 daqiqa sekin yurish — eng oddiy, eng kuchli dori."},
   {emoji:"😴",matn:"22:00 da uxlash — o'sish gormoni shu vaqtda eng ko'p chiqadi."},
-  {emoji:"🌿",matn:"Rastoropsha jigarni kundalik toksinlardan tozalaydi."},
+  {emoji:"🌿",text:"Rastoropsha jigarni kundalik toksinlardan tozalaydi."},
   {emoji:"💊",matn:"Magniy 300 dan ortiq ferment reaktsiyasida ishtirok etadi."},
   {emoji:"🫁",matn:"4-4-6 nafas: stressni 1 daqiqada pasaytiradi."},
   {emoji:"💧",matn:"Miyangiz 75% suvdan iborat — har soatda suv iching."},
@@ -97,7 +101,7 @@ function RatsionBlok({b,oshqozon}){
       </div>
       <div style={{padding:"11px 13px"}}>
         {b.tur==="ovqat"&&<div style={{background:"#EFF6FF",borderRadius:8,padding:"8px 11px",marginBottom:10}}><div style={{fontSize:12,fontWeight:700,color:"#1D4ED8",marginBottom:2}}>💧 Ovqatdan oldin suv iching</div><div style={{fontSize:11,color:"#1E40AF"}}>15-20 daqiqa oldin 1 stakan suv iching</div></div>}
-        {(b.bandlar||[]).filter(x=>!(oshqozon&&x.text.includes("sirka"))).map((x,k,arr)=>(
+        {(b.bandlar||[]).filter(x=>!(oshqozon&&x.text&&x.text.includes("sirka"))).map((x,k,arr)=>(
           <div key={k} style={{display:"flex",alignItems:"flex-start",gap:8,padding:"5px 0",borderBottom:k<arr.length-1?"1px solid rgba(0,0,0,0.05)":"none"}}>
             <span style={{fontSize:15,minWidth:20}}>{x.emoji}</span>
             <span style={{fontSize:13,color:CH,lineHeight:1.4}}>{x.text}</span>
@@ -180,18 +184,19 @@ function NafasTab(){
   const [bosqich,setBosqich]=useState(0);
   const [hisoblagich,setHisoblagich]=useState(0);
   const [sikl,setSikl]=useState(0);
-  const timerRef=useState(null);
+  const [timerId,setTimerId]=useState(null);
   const NAFAS=[{nom:"Nafas oling",davom:4,rang:"#0EA5E9",emoji:"🌬️"},{nom:"Ushlab turing",davom:4,rang:"#7C3AED",emoji:"🔒"},{nom:"Chiqaring",davom:6,rang:"#10B981",emoji:"💨"}];
   const boshlash=()=>{
     setHolat("ishlaydi");setBosqich(0);setHisoblagich(NAFAS[0].davom);setSikl(0);
     let ph=0,cn=NAFAS[0].davom,cl=0;
-    timerRef[1](setInterval(()=>{
+    const id=setInterval(()=>{
       cn--;
-      if(cn<=0){ph=(ph+1)%3;if(ph===0)cl++;if(cl>=3){clearInterval(timerRef[0]);setHolat("tugadi");return;}cn=NAFAS[ph].davom;}
+      if(cn<=0){ph=(ph+1)%3;if(ph===0)cl++;if(cl>=3){clearInterval(id);setHolat("tugadi");return;}cn=NAFAS[ph].davom;}
       setBosqich(ph);setHisoblagich(cn);setSikl(cl);
-    },1000));
+    },1000);
+    setTimerId(id);
   };
-  const toxtatish=()=>{clearInterval(timerRef[0]);setHolat("tayyor");};
+  const toxtatish=()=>{clearInterval(timerId);setHolat("tayyor");};
   const cur=NAFAS[bosqich];
   return(
     <div>
@@ -275,6 +280,63 @@ function ProgressTab(){
   );
 }
 
+// To'lov modal
+function TovModal({hafta, profil, onClose}){
+  const [copied, setCopied] = useState(false);
+
+  const sendToTelegram = async () => {
+    const msg = `🆕 YANGI TO'LOV SO'ROVI\n\n👤 Ism: ${profil.ism}\n📱 Hafta: ${hafta+1}-hafta\n💰 Narx: ${NARX.toLocaleString()} so'm\n\n✅ To'lovni tasdiqlash uchun foydalanuvchiga javob bering.`;
+    try {
+      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({chat_id: ADMIN_ID, text: msg})
+      });
+    } catch(e) {}
+  };
+
+  const handleTolov = () => {
+    sendToTelegram();
+    window.open(`https://t.me/soghlom_hayot_bot?start=tolov_hafta${hafta+1}_${profil.ism}`, "_blank");
+    onClose();
+  };
+
+  return(
+    <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.6)",zIndex:100,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
+      <div style={{background:SU,borderRadius:"20px 20px 0 0",padding:24,width:"100%",maxWidth:480}}>
+        <div style={{textAlign:"center",marginBottom:16}}>
+          <div style={{fontSize:40,marginBottom:8}}>🔒</div>
+          <div style={{fontWeight:800,fontSize:20,color:PR}}>{hafta+1}-hafta</div>
+          <div style={{fontSize:13,color:MU,marginTop:4}}>Bu hafta uchun to'lov kerak</div>
+        </div>
+
+        <div style={{background:LI,borderRadius:12,padding:16,marginBottom:16}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+            <span style={{fontSize:14,color:CH}}>💰 Narx:</span>
+            <span style={{fontSize:18,fontWeight:800,color:PR}}>{NARX.toLocaleString()} so'm</span>
+          </div>
+          <div style={{fontSize:12,color:MU}}>✅ To'liq hafta dasturi ochiladi</div>
+          <div style={{fontSize:12,color:MU}}>✅ Ratsion, sport, suv, nafas</div>
+        </div>
+
+        <div style={{background:"#FFF3CD",borderRadius:12,padding:14,marginBottom:16,fontSize:13,color:"#856404"}}>
+          <b>📋 To'lov tartibi:</b><br/>
+          1. Telegram botga o'ting<br/>
+          2. Payme/Click orqali to'lang<br/>
+          3. Admin tasdiqlaydi → hafta ochiladi
+        </div>
+
+        <button onClick={handleTolov} style={{width:"100%",padding:"16px",borderRadius:14,border:"none",background:"linear-gradient(135deg,#0088cc,#0055aa)",color:"#fff",fontSize:16,fontWeight:700,cursor:"pointer",marginBottom:10,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+          <span style={{fontSize:20}}>✈️</span> Telegram orqali to'lash
+        </button>
+        <button onClick={onClose} style={{width:"100%",padding:"12px",borderRadius:12,border:"1px solid #E5E7EB",background:"transparent",color:MU,fontSize:14,cursor:"pointer"}}>
+          Bekor qilish
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // Profil sahifasi
 function ProfilSahifasi({onSave}){
   const [form,setForm]=useState({ism:"",jins:"Erkak",yosh:"",boy:"",vazn:"",bel:"",faollik:ACT_L[1],maqsad:"Ozish",oshqozon:false,diabet:false,uyqusizlik:false});
@@ -322,7 +384,7 @@ function ProfilSahifasi({onSave}){
             ))}
           </div>
           <button onClick={save} style={{width:"100%",padding:"14px",borderRadius:13,border:"none",background:"linear-gradient(135deg,"+PR+","+AC+")",color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer"}}>
-            ✅ Dasturni boshlash
+            ✅ Davom etish
           </button>
         </div>
       </div>
@@ -337,6 +399,8 @@ export default function App(){
   const [tab,setTab]=useState("ratsion");
   const [maslahatIdx,setMaslahatIdx]=useState(0);
   const [oshqozon,setOshqozon]=useState(false);
+  const [ochikHaftalar,setOchikHaftalar]=useState([]);
+  const [tovModal,setTovModal]=useState(null);
 
   useEffect(()=>{
     const saved=localStorage.getItem("soghlom_profil");
@@ -345,8 +409,16 @@ export default function App(){
       setProfile(p);
       setOshqozon(p.oshqozon||false);
     }
+    const ochik=localStorage.getItem("ochik_haftalar");
+    if(ochik) setOchikHaftalar(JSON.parse(ochik));
     setLoading(false);
   },[]);
+
+  const haftaOch=(i)=>{
+    const yangi=[...ochikHaftalar,i];
+    setOchikHaftalar(yangi);
+    localStorage.setItem("ochik_haftalar",JSON.stringify(yangi));
+  };
 
   const handleSave=(p)=>{
     setProfile(p);
@@ -355,7 +427,9 @@ export default function App(){
 
   const handleReset=()=>{
     localStorage.removeItem("soghlom_profil");
+    localStorage.removeItem("ochik_haftalar");
     setProfile(null);
+    setOchikHaftalar([]);
   };
 
   if(loading) return(
@@ -369,9 +443,12 @@ export default function App(){
 
   const HAFTA_RANGLARI=[PR,"#1D4ED8","#7C3AED","#B45309"];
   const r=RATSIONLAR[hafta];
+  const isOchiq=ochikHaftalar.includes(hafta);
 
   return(
     <div style={{minHeight:"100vh",background:CR,fontFamily:"system-ui,-apple-system,sans-serif"}}>
+      {tovModal!==null&&<TovModal hafta={tovModal} profil={profile} onClose={()=>setTovModal(null)}/>}
+
       <div style={{background:r.rang,padding:"14px 18px",position:"sticky",top:0,zIndex:10}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
@@ -400,34 +477,57 @@ export default function App(){
           <div style={{color:"#fff",fontSize:13,lineHeight:1.6}}>{MASLAHATLAR[maslahatIdx].matn}</div>
         </div>
 
+        {/* Hafta tanlash - qulf bilan */}
         <div style={{marginBottom:14}}>
           <div style={{fontSize:12,color:MU,marginBottom:8,fontWeight:600}}>📅 Hafta tanlang:</div>
           <div style={{display:"flex",gap:6}}>
-            {RATSIONLAR.map((x,i)=>(
-              <button key={i} onClick={()=>setHafta(i)} style={{flex:1,padding:"10px 4px",borderRadius:11,border:"2px solid "+(hafta===i?HAFTA_RANGLARI[i]:"#E5E7EB"),background:hafta===i?HAFTA_RANGLARI[i]:SU,color:hafta===i?"#fff":CH,cursor:"pointer",textAlign:"center"}}>
-                <div style={{fontSize:14,fontWeight:800}}>{i+1}</div>
-                <div style={{fontSize:9,marginTop:2,color:hafta===i?"rgba(255,255,255,0.8)":MU}}>Hafta</div>
-              </button>
-            ))}
+            {RATSIONLAR.map((x,i)=>{
+              const ochiq=ochikHaftalar.includes(i);
+              return(
+                <button key={i} onClick={()=>{
+                  if(ochiq){setHafta(i);}
+                  else{setTovModal(i);}
+                }} style={{flex:1,padding:"10px 4px",borderRadius:11,border:"2px solid "+(hafta===i?HAFTA_RANGLARI[i]:"#E5E7EB"),background:hafta===i?HAFTA_RANGLARI[i]:SU,color:hafta===i?"#fff":CH,cursor:"pointer",textAlign:"center",position:"relative"}}>
+                  {!ochiq&&<div style={{position:"absolute",top:-6,right:-4,background:"#EF4444",borderRadius:"50%",width:18,height:18,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10}}>🔒</div>}
+                  <div style={{fontSize:14,fontWeight:800}}>{i+1}</div>
+                  <div style={{fontSize:9,marginTop:2,color:hafta===i?"rgba(255,255,255,0.8)":MU}}>{ochiq?"Ochiq":"Hafta"}</div>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        <div style={{background:"linear-gradient(135deg,"+r.rang+","+r.rang+"CC)",borderRadius:14,padding:"14px 16px",marginBottom:14}}>
-          <div style={{color:"#fff",fontWeight:800,fontSize:15,marginBottom:4}}>{r.nom}</div>
-          <div style={{color:"rgba(255,255,255,0.85)",fontSize:12}}>{r.tavsif}</div>
-        </div>
+        {/* Hafta banner yoki qulf ekrani */}
+        {!isOchiq ? (
+          <div style={{background:"linear-gradient(135deg,#1a1a2e,#16213e)",borderRadius:16,padding:24,textAlign:"center",marginBottom:14}}>
+            <div style={{fontSize:48,marginBottom:12}}>🔒</div>
+            <div style={{color:"#fff",fontWeight:800,fontSize:18,marginBottom:8}}>{hafta+1}-hafta yopiq</div>
+            <div style={{color:"rgba(255,255,255,0.7)",fontSize:13,marginBottom:20}}>Bu haftani ochish uchun to'lov qiling</div>
+            <div style={{color:"#FFD700",fontWeight:800,fontSize:24,marginBottom:20}}>{NARX.toLocaleString()} so'm</div>
+            <button onClick={()=>setTovModal(hafta)} style={{padding:"14px 32px",borderRadius:14,border:"none",background:"linear-gradient(135deg,#0088cc,#0055aa)",color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:8}}>
+              ✈️ Telegram orqali to'lash
+            </button>
+          </div>
+        ) : (
+          <>
+            <div style={{background:"linear-gradient(135deg,"+r.rang+","+r.rang+"CC)",borderRadius:14,padding:"14px 16px",marginBottom:14}}>
+              <div style={{color:"#fff",fontWeight:800,fontSize:15,marginBottom:4}}>{r.nom}</div>
+              <div style={{color:"rgba(255,255,255,0.85)",fontSize:12}}>{r.tavsif}</div>
+            </div>
 
-        <div style={{display:"flex",gap:4,marginBottom:12,overflowX:"auto",paddingBottom:2}}>
-          {[["ratsion","🍽️"],["sport","🏋️"],["suv","💧"],["nafas","🫁"],["progress","📊"]].map(([x,l])=>(
-            <button key={x} onClick={()=>setTab(x)} style={{minWidth:46,padding:"9px 8px",borderRadius:11,border:"none",background:tab===x?r.rang:SU,color:tab===x?"#fff":MU,cursor:"pointer",fontSize:16,boxShadow:"0 1px 3px rgba(0,0,0,0.07)",flexShrink:0}}>{l}</button>
-          ))}
-        </div>
+            <div style={{display:"flex",gap:4,marginBottom:12,overflowX:"auto",paddingBottom:2}}>
+              {[["ratsion","🍽️"],["sport","🏋️"],["suv","💧"],["nafas","🫁"],["progress","📊"]].map(([x,l])=>(
+                <button key={x} onClick={()=>setTab(x)} style={{minWidth:46,padding:"9px 8px",borderRadius:11,border:"none",background:tab===x?r.rang:SU,color:tab===x?"#fff":MU,cursor:"pointer",fontSize:16,boxShadow:"0 1px 3px rgba(0,0,0,0.07)",flexShrink:0}}>{l}</button>
+              ))}
+            </div>
 
-        {tab==="ratsion"&&<div>{r.bloklar.map((b,i)=><RatsionBlok key={i} b={b} oshqozon={oshqozon}/>)}</div>}
-        {tab==="sport"&&<SportTab/>}
-        {tab==="suv"&&<SuvTab/>}
-        {tab==="nafas"&&<NafasTab/>}
-        {tab==="progress"&&<ProgressTab/>}
+            {tab==="ratsion"&&<div>{r.bloklar.map((b,i)=><RatsionBlok key={i} b={b} oshqozon={oshqozon}/>)}</div>}
+            {tab==="sport"&&<SportTab/>}
+            {tab==="suv"&&<SuvTab/>}
+            {tab==="nafas"&&<NafasTab/>}
+            {tab==="progress"&&<ProgressTab/>}
+          </>
+        )}
       </div>
     </div>
   );
