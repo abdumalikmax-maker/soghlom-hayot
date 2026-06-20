@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { initializeApp } from "firebase/app";
 import {
   getAuth,
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
+  GoogleAuthProvider,
+  signInWithPopup,
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
@@ -304,158 +304,54 @@ const MASLAHATLAR=[
   {emoji:"💧",matn:"Miyangiz 75% suvdan iborat — har soatda suv iching."},
 ];
 
-// ── PHONE OTP LOGIN ──────────────────────────────────────────────────────────
-function PhoneLogin({ onSuccess }) {
-  const [phone, setPhone] = useState("+998");
-  const [otp, setOtp] = useState("");
-  const [step, setStep] = useState("phone");
+// ── GOOGLE LOGIN ──────────────────────────────────────────────────────────────
+function GoogleLogin({ onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
-  const [recaptchaReady, setRecaptchaReady] = useState(false);
-  const confirmRef = useRef(null);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      try {
-        if (!window.recaptchaVerifier) {
-          window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-            size: "normal",
-            callback: () => { setRecaptchaReady(true); },
-            "expired-callback": () => { setRecaptchaReady(false); },
-          });
-          window.recaptchaVerifier.render();
-        }
-      } catch (e) { console.log("reCAPTCHA:", e); }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const sendOtp = async () => {
+  const handleGoogle = async () => {
     setLoading(true); setErr("");
     try {
-      if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-          size: "invisible",
-          callback: () => {},
-        });
-        await window.recaptchaVerifier.render();
-      }
-      const confirmation = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
-      confirmRef.current = confirmation;
-      setStep("otp");
-    } catch (e) {
-      setErr("Xatolik yuz berdi. Qayta urinib ko'ring");
-      if (window.recaptchaVerifier) { window.recaptchaVerifier.clear(); window.recaptchaVerifier = null; }
-    }
-    setLoading(false);
-  };
-
-  const verifyOtp = async () => {
-    setLoading(true); setErr("");
-    try {
-      const result = await confirmRef.current.confirm(otp);
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
       onSuccess(result.user);
     } catch (e) {
-      setErr("Kod noto'g'ri, qayta urinib ko'ring");
+      setErr("Google bilan kirishda xatolik. Qayta urinib ko'ring.");
     }
     setLoading(false);
-  };
-
-  const inp = {
-    width: "100%", padding: "13px 14px", borderRadius: 10,
-    border: "1.5px solid #E5E7EB", fontSize: 16, color: CH,
-    background: CR, outline: "none", boxSizing: "border-box", marginBottom: 10
   };
 
   return (
     <div style={{ minHeight: "100vh", background: CR, fontFamily: "system-ui,-apple-system,sans-serif" }}>
-      <div style={{ background: PR, padding: "40px 20px 30px", textAlign: "center" }}>
-        <div style={{ fontSize: 48, marginBottom: 10 }}>🌿</div>
-        <div style={{ color: "#fff", fontWeight: 800, fontSize: 24 }}>Sog'lom Hayot</div>
-        <div style={{ color: AC, fontSize: 13, marginTop: 6 }}>30 kunlik sog'lom hayot dasturi</div>
+      <div style={{ background: PR, padding: "60px 20px 40px", textAlign: "center" }}>
+        <div style={{ fontSize: 56, marginBottom: 12 }}>🌿</div>
+        <div style={{ color: "#fff", fontWeight: 800, fontSize: 26 }}>Sog'lom Hayot</div>
+        <div style={{ color: AC, fontSize: 14, marginTop: 8 }}>30 kunlik sog'lom hayot dasturi</div>
       </div>
-
-      <div style={{ maxWidth: 400, margin: "0 auto", padding: "30px 20px" }}>
-        <div style={{ background: SU, borderRadius: 18, padding: 24, boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
-
-          {step === "phone" && (
-            <>
-              <div style={{ fontWeight: 800, fontSize: 20, color: PR, marginBottom: 6, textAlign: "center" }}>Kirish</div>
-              <div style={{ fontSize: 13, color: MU, textAlign: "center", marginBottom: 20 }}>
-                Telefon raqamingizga SMS kod yuboramiz
-              </div>
-              {err && (
-                <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 9, padding: "10px 13px", color: DA, fontSize: 13, marginBottom: 12 }}>
-                  {err}
-                </div>
-              )}
-              <div style={{ fontSize: 13, fontWeight: 600, color: CH, marginBottom: 6 }}>📱 Telefon raqam</div>
-              <input
-                style={inp}
-                type="tel"
-                placeholder="+998 90 123 45 67"
-                value={phone}
-                onChange={e => setPhone(e.target.value)}
-              />
-              <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
-                <div id="recaptcha-container"></div>
-              </div>
-              {recaptchaReady && <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 8, padding: "8px 12px", marginBottom: 12, fontSize: 12, color: "#065F46", textAlign: "center" }}>✅ Tasdiqlandi!</div>}
-              <button
-                onClick={sendOtp}
-                disabled={loading}
-                style={{
-                  width: "100%", padding: "14px", borderRadius: 12, border: "none",
-                  background: "linear-gradient(135deg," + PR + "," + AC + ")",
-                  color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer",
-                  boxShadow: "0 4px 14px rgba(27,67,50,0.3)"
-                }}
-              >
-                {loading ? "Yuborilmoqda..." : "📨 SMS Kod Yuborish"}
-              </button>
-            </>
-          )}
-
-          {step === "otp" && (
-            <>
-              <div style={{ fontWeight: 800, fontSize: 20, color: PR, marginBottom: 6, textAlign: "center" }}>SMS Kodni Kiriting</div>
-              <div style={{ fontSize: 13, color: MU, textAlign: "center", marginBottom: 20 }}>
-                {phone} raqamiga 6 raqamli kod yuborildi
-              </div>
-              {err && (
-                <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 9, padding: "10px 13px", color: DA, fontSize: 13, marginBottom: 12 }}>
-                  {err}
-                </div>
-              )}
-              <input
-                style={{ ...inp, fontSize: 24, textAlign: "center", letterSpacing: 8, fontWeight: 700 }}
-                type="number"
-                placeholder="123456"
-                value={otp}
-                onChange={e => setOtp(e.target.value)}
-                maxLength={6}
-              />
-              <button
-                onClick={verifyOtp}
-                disabled={loading || otp.length < 6}
-                style={{
-                  width: "100%", padding: "14px", borderRadius: 12, border: "none",
-                  background: otp.length >= 6 ? "linear-gradient(135deg," + PR + "," + AC + ")" : "#E5E7EB",
-                  color: otp.length >= 6 ? "#fff" : MU, fontSize: 16, fontWeight: 700,
-                  cursor: otp.length >= 6 ? "pointer" : "default",
-                  marginBottom: 10
-                }}
-              >
-                {loading ? "Tekshirilmoqda..." : "✅ Tasdiqlash"}
-              </button>
-              <button
-                onClick={() => { setStep("phone"); setErr(""); setOtp(""); }}
-                style={{ width: "100%", padding: "10px", borderRadius: 10, border: "1px solid #E5E7EB", background: "transparent", color: MU, fontSize: 14, cursor: "pointer" }}
-              >
-                ← Orqaga
-              </button>
-            </>
-          )}
+      <div style={{ maxWidth: 380, margin: "0 auto", padding: "40px 20px" }}>
+        <div style={{ background: SU, borderRadius: 20, padding: 28, boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}>
+          <div style={{ fontWeight: 800, fontSize: 22, color: PR, marginBottom: 8, textAlign: "center" }}>Kirish</div>
+          <div style={{ fontSize: 14, color: MU, textAlign: "center", marginBottom: 28, lineHeight: 1.5 }}>
+            Google hisobingiz bilan kiring
+          </div>
+          {err && <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 10, padding: "10px 14px", color: DA, fontSize: 13, marginBottom: 16 }}>{err}</div>}
+          <button
+            onClick={handleGoogle}
+            disabled={loading}
+            style={{
+              width: "100%", padding: "16px", borderRadius: 14, border: "2px solid #E5E7EB",
+              background: SU, color: CH, fontSize: 16, fontWeight: 600,
+              cursor: loading ? "default" : "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 12,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.06)"
+            }}
+          >
+            <span style={{ fontSize: 22 }}>G</span>
+            {loading ? "Kirilmoqda..." : "Google bilan kirish"}
+          </button>
+          <div style={{ marginTop: 20, background: LI, borderRadius: 10, padding: "12px 14px", fontSize: 12, color: PR, lineHeight: 1.6 }}>
+            🔒 Xavfsiz kirish. Shaxsiy ma'lumotlaringiz himoyalangan.
+          </div>
         </div>
       </div>
     </div>
@@ -511,7 +407,7 @@ export default function App() {
     return () => unsub();
   }, []);
 
-  const handlePhoneSuccess = async (firebaseUser) => {
+  const handleGoogleSuccess = async (firebaseUser) => {
     setUser(firebaseUser);
     const snap = await getDoc(doc(db, "users", firebaseUser.uid));
     if (snap.exists()) {
@@ -519,6 +415,7 @@ export default function App() {
       setOshqozon(snap.data().oshqozon || false);
       setScreen("main");
     } else {
+      setProfForm(p => ({ ...p, ism: firebaseUser.displayName || "" }));
       setScreen("profile");
     }
   };
@@ -553,7 +450,7 @@ export default function App() {
     </div>
   );
 
-  if (screen === "login") return <PhoneLogin onSuccess={handlePhoneSuccess} />;
+  if (screen === "login") return <GoogleLogin onSuccess={handleGoogleSuccess} />;
 
   // ── PROFIL TO'LDIRISH ──
   if (screen === "profile") return (
