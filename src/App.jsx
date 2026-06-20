@@ -332,8 +332,8 @@ function KodModal({hafta, profil, onClose, onKodKiritish}){
               <div style={{background:"#FFF3CD",borderRadius:12,padding:12,marginBottom:14,fontSize:13,color:"#856404"}}>
               <b>📋 To'lov tartibi:</b><br/>
               1. Yuqoridagi kartaga 399 000 so'm o'tkazing<br/>
-              2. Quyidagi tugmani bosing<br/>
-              3. Kirish kodi Telegramga keladi<br/>
+              2. To'lov chekini <b>@BaniyatSafoo</b> ga yuboring<br/>
+              3. Admin tasdiqlaydi → kirish kodi keladi<br/>
               4. Kodni kiriting → hafta ochiladi
             </div>
 
