@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sog'lom Hayot — Admin Panel</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, sans-serif; background: #F0FDF4; color: #1C1C1E; }
+.header { background: #1B4332; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+.header h1 { color: #fff; font-size: 18px; }
+.header span { color: #52B788; font-size: 13px; }
+.stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; padding: 16px; }
+.stat { background: #fff; border-radius: 12px; padding: 14px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.stat .num { font-size: 28px; font-weight: 800; color: #1B4332; }
+.stat .lab { font-size: 11px; color: #6B7280; margin-top: 4px; }
+.section { padding: 0 16px 16px; }
+.section h2 { font-size: 15px; font-weight: 700; color: #1B4332; margin-bottom: 10px; }
+.card { background: #fff; border-radius: 12px; padding: 14px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+.card .top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.card .ism { font-weight: 700; font-size: 15px; }
+.card .vaqt { font-size: 11px; color: #6B7280; }
+.card .info { font-size: 13px; color: #6B7280; margin-bottom: 10px; }
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.badge.kutilmoqda { background: #FEF3C7; color: #92400E; }
+.badge.tasdiqlangan { background: #D1FAE5; color: #065F46; }
+.badge.bekor { background: #FEE2E2; color: #991B1B; }
+.btn { padding: 8px 16px; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn.confirm { background: #1B4332; color: #fff; }
+.btn.reject { background: #FEE2E2; color: #DC2626; margin-left: 6px; }
+.btn.copy { background: #EFF6FF; color: #1D4ED8; margin-left: 6px; }
+.kod { background: #F0FDF4; border: 1px dashed #52B788; border-radius: 8px; padding: 8px 12px; font-size: 16px; font-weight: 800; color: #1B4332; letter-spacing: 2px; text-align: center; margin-top: 8px; }
+.empty { text-align: center; padding: 30px; color: #6B7280; font-size: 14px; }
+.tabs { display: flex; gap: 8px; padding: 12px 16px; }
+.tab { flex: 1; padding: 10px; border-radius: 10px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; }
+.tab.active { background: #1B4332; color: #fff; }
+.tab.inactive { background: #fff; color: #6B7280; }
+.login { max-width: 360px; margin: 60px auto; background: #fff; border-radius: 16px; padding: 28px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+.login h2 { color: #1B4332; font-size: 22px; margin-bottom: 20px; text-align: center; }
+.login input { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1.5px solid #E5E7EB; font-size: 15px; margin-bottom: 12px; outline: none; }
+.login button { width: 100%; padding: 13px; border-radius: 12px; border: none; background: #1B4332; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; }
+.refresh { float: right; background: #E8F5EE; border: none; border-radius: 8px; padding: 6px 12px; font-size: 12px; color: #1B4332; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div id="loginPage" style="display:block">
+  <div class="login">
+    <div style="text-align:center;font-size:40px;margin-bottom:12px">🌿</div>
+    <h2>Admin Panel</h2>
+    <input type="password" id="passwordInput" placeholder="Parol kiriting" onkeydown="if(event.key==='Enter')login()">
+    <button onclick="login()">Kirish</button>
+    <div id="loginErr" style="color:#DC2626;font-size:13px;margin-top:10px;text-align:center"></div>
+  </div>
+</div>
+
+<div id="adminPage" style="display:none">
+  <div class="header">
+    <h1>🌿 Admin Panel</h1>
+    <span id="onlineCount">Yuklanmoqda...</span>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="num" id="statJami">0</div>
+      <div class="lab">Jami so'rov</div>
+    </div>
+    <div class="stat">
+      <div class="num" id="statTasdiqlangan">0</div>
+      <div class="lab">Tasdiqlangan</div>
+    </div>
+    <div class="stat">
+      <div class="num" id="statDaromad">0</div>
+      <div class="lab">Daromad (ming)</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('kutilmoqda')" id="tab1">⏳ Kutilmoqda</button>
+    <button class="tab inactive" onclick="showTab('tasdiqlangan')" id="tab2">✅ Tasdiqlangan</button>
+    <button class="tab inactive" onclick="showTab('hammasi')" id="tab3">📋 Hammasi</button>
+  </div>
+
+  <div class="section">
+    <h2>To'lov So'rovlari <button class="refresh" onclick="loadData()">🔄 Yangilash</button></h2>
+    <div id="listContainer"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, getDocs, doc, updateDoc, addDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDW4tDCId51RaoROBuKEfKLaLm7PLACEHOLDER",
+  authDomain: "soghlom-hayot.firebaseapp.com",
+  projectId: "soghlom-hayot",
+  storageBucket: "soghlom-hayot.firebasestorage.app",
+  messagingSenderId: "321253021051",
+  appId: "1:321253021051:web:7d0ae7663973c1d980d9de"
+};
+
+const ADMIN_PASSWORD = "sher2024admin";
+const BOT_TOKEN = "8740349246:AAEGvi4m6xhmmxazWI6z7VEzuEcy820kvz0";
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let allData = [];
+let activeTab = "kutilmoqda";
+
+window.login = function() {
+  const pass = document.getElementById("passwordInput").value;
+  if(pass === ADMIN_PASSWORD) {
+    document.getElementById("loginPage").style.display = "none";
+    document.getElementById("adminPage").style.display = "block";
+    loadData();
+  } else {
+    document.getElementById("loginErr").textContent = "Parol noto'g'ri!";
+  }
+};
+
+window.showTab = function(tab) {
+  activeTab = tab;
+  ["tab1","tab2","tab3"].forEach((t,i) => {
+    document.getElementById(t).className = "tab " + (["kutilmoqda","tasdiqlangan","hammasi"][i] === tab ? "active" : "inactive");
+  });
+  renderList();
+};
+
+function generateKod() {
+  return "SH" + Math.floor(100000 + Math.random() * 900000);
+}
+
+async function sendTelegramMsg(chatId, msg) {
+  try {
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({chat_id: chatId, text: msg, parse_mode: "HTML"})
+    });
+  } catch(e) {}
+}
+
+window.loadData = async function() {
+  try {
+    const q = query(collection(db, "tolovlar"), orderBy("vaqt", "desc"));
+    const snap = await getDocs(q);
+    allData = snap.docs.map(d => ({id: d.id, ...d.data()}));
+    updateStats();
+    renderList();
+    document.getElementById("onlineCount").textContent = allData.length + " ta so'rov";
+  } catch(e) {
+    document.getElementById("listContainer").innerHTML = "<div class='empty'>Ma'lumot yuklanmadi</div>";
+  }
+};
+
+function updateStats() {
+  const tasdiqlangan = allData.filter(d => d.holat === "tasdiqlangan");
+  document.getElementById("statJami").textContent = allData.length;
+  document.getElementById("statTasdiqlangan").textContent = tasdiqlangan.length;
+  document.getElementById("statDaromad").textContent = Math.floor(tasdiqlangan.length * 399);
+}
+
+function renderList() {
+  let filtered = allData;
+  if(activeTab === "kutilmoqda") filtered = allData.filter(d => d.holat === "kutilmoqda");
+  if(activeTab === "tasdiqlangan") filtered = allData.filter(d => d.holat === "tasdiqlangan");
+
+  if(filtered.length === 0) {
+    document.getElementById("listContainer").innerHTML = "<div class='empty'>Hozircha ma'lumot yo'q</div>";
+    return;
+  }
+
+  document.getElementById("listContainer").innerHTML = filtered.map(d => {
+    const vaqt = d.vaqt?.toDate ? d.vaqt.toDate().toLocaleString("uz") : "—";
+    const holatBadge = d.holat === "tasdiqlangan" 
+      ? `<span class="badge tasdiqlangan">✅ Tasdiqlangan</span>`
+      : d.holat === "bekor"
+      ? `<span class="badge bekor">❌ Bekor</span>`
+      : `<span class="badge kutilmoqda">⏳ Kutilmoqda</span>`;
+    
+    const buttons = d.holat === "kutilmoqda" ? `
+      <button class="btn confirm" onclick="tasdiqlash('${d.id}', '${d.telegramId || ""}', '${d.ism}', ${d.hafta})">✅ Tasdiqlash</button>
+      <button class="btn reject" onclick="bekorQilish('${d.id}')">❌ Bekor</button>
+    ` : d.holat === "tasdiqlangan" ? `
+      <div class="kod">${d.kod || "—"}</div>
+      <button class="btn copy" onclick="navigator.clipboard.writeText('${d.kod}')">📋 Nusxa</button>
+    ` : "";
+
+    return `
+      <div class="card">
+        <div class="top">
+          <div>
+            <div class="ism">👤 ${d.ism || "Noma'lum"}</div>
+            <div class="vaqt">${vaqt}</div>
+          </div>
+          ${holatBadge}
+        </div>
+        <div class="info">📅 ${d.hafta + 1}-hafta • 💰 399 000 so'm ${d.telegramId ? '• 📱 TG: ' + d.telegramId : ''}</div>
+        ${buttons}
+      </div>
+    `;
+  }).join("");
+}
+
+window.tasdiqlash = async function(id, telegramId, ism, hafta) {
+  const kod = generateKod();
+  try {
+    await updateDoc(doc(db, "tolovlar", id), {
+      holat: "tasdiqlangan",
+      kod: kod,
+      tasdiqlashVaqti: serverTimestamp()
+    });
+
+    if(telegramId) {
+      const msg = `✅ <b>To'lovingiz tasdiqlandi!</b>\n\n🌿 Sog'lom Hayot\n📅 ${hafta+1}-hafta uchun kirish kodi:\n\n<code>${kod}</code>\n\nSaytga kiring va ushbu kodni kiriting!`;
+      await sendTelegramMsg(telegramId, msg);
+    }
+
+    alert(`✅ Tasdiqlandi!\nKod: ${kod}\n${telegramId ? "Telegram xabar yuborildi!" : "Kodni qo'lda yuboring!"}`);
+    loadData();
+  } catch(e) {
+    alert("Xatolik yuz berdi");
+  }
+};
+
+window.bekorQilish = async function(id) {
+  if(!confirm("Bekor qilasizmi?")) return;
+  await updateDoc(doc(db, "tolovlar", id), {holat: "bekor"});
+  loadData();
+};
+
+// Demo ma'lumot qo'shish (test uchun)
+window.demoQosh = async function() {
+  await addDoc(collection(db, "tolovlar"), {
+    ism: "Test Foydalanuvchi",
+    hafta: 0,
+    holat: "kutilmoqda",
+    narx: 399000,
+    telegramId: "1364027533",
+    vaqt: serverTimestamp()
+  });
+  loadData();
+};
+</script>
+
+</body>
+</html>
