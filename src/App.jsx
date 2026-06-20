@@ -308,29 +308,38 @@ const MASLAHATLAR=[
 function PhoneLogin({ onSuccess }) {
   const [phone, setPhone] = useState("+998");
   const [otp, setOtp] = useState("");
-  const [step, setStep] = useState("phone"); // phone | otp
+  const [step, setStep] = useState("phone");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+  const [recaptchaReady, setRecaptchaReady] = useState(false);
   const confirmRef = useRef(null);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        if (!window.recaptchaVerifier) {
+          window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+            size: "normal",
+            callback: () => { setRecaptchaReady(true); },
+            "expired-callback": () => { setRecaptchaReady(false); },
+          });
+          window.recaptchaVerifier.render();
+        }
+      } catch (e) { console.log("reCAPTCHA:", e); }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
+
   const sendOtp = async () => {
+    if (!recaptchaReady) { setErr("Iltimos reCAPTCHA ni belgilang ✓"); return; }
     setLoading(true); setErr("");
     try {
-      if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-          size: "invisible",
-          callback: () => {},
-        });
-      }
       const confirmation = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
       confirmRef.current = confirmation;
       setStep("otp");
     } catch (e) {
-      setErr("Telefon raqam noto'g'ri yoki xatolik yuz berdi");
-      if (window.recaptchaVerifier) {
-        window.recaptchaVerifier.clear();
-        window.recaptchaVerifier = null;
-      }
+      setErr("Xatolik: " + (e.message || "Qayta urinib ko'ring"));
+      if (window.recaptchaVerifier) { window.recaptchaVerifier.clear(); window.recaptchaVerifier = null; setRecaptchaReady(false); }
     }
     setLoading(false);
   };
@@ -382,15 +391,18 @@ function PhoneLogin({ onSuccess }) {
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
               />
-              <div id="recaptcha-container" />
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
+                <div id="recaptcha-container"></div>
+              </div>
+              {recaptchaReady && <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 8, padding: "8px 12px", marginBottom: 12, fontSize: 12, color: "#065F46", textAlign: "center" }}>✅ Tasdiqlandi!</div>}
               <button
                 onClick={sendOtp}
-                disabled={loading}
+                disabled={loading || !recaptchaReady}
                 style={{
                   width: "100%", padding: "14px", borderRadius: 12, border: "none",
-                  background: "linear-gradient(135deg," + PR + "," + AC + ")",
-                  color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer",
-                  boxShadow: "0 4px 14px rgba(27,67,50,0.3)"
+                  background: recaptchaReady ? "linear-gradient(135deg," + PR + "," + AC + ")" : "#E5E7EB",
+                  color: recaptchaReady ? "#fff" : MU, fontSize: 16, fontWeight: 700,
+                  cursor: recaptchaReady ? "pointer" : "default"
                 }}
               >
                 {loading ? "Yuborilmoqda..." : "📨 SMS Kod Yuborish"}
