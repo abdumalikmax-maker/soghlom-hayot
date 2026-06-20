@@ -318,7 +318,7 @@ function PhoneLogin({ onSuccess }) {
     try {
       if (!window.recaptchaVerifier) {
         window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-          size: "invisible",
+          size: "normal",
           callback: () => {},
         });
       }
