@@ -328,16 +328,17 @@ function KodModal({hafta, profil, onClose, onKodKiritish}){
               <div style={{fontSize:12,color:MU}}>✅ To'liq hafta dasturi ochiladi</div>
             </div>
 
-            <div style={{background:"#FFF3CD",borderRadius:12,padding:14,marginBottom:16,fontSize:13,color:"#856404"}}>
+            <div style={{background:"#F0FDF4",border:"1px solid #BBF7D0",borderRadius:12,padding:14,marginBottom:12}}><div style={{fontSize:13,fontWeight:700,color:PR,marginBottom:10}}>💳 To'lov rekvizitlari:</div><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",background:SU,borderRadius:8,padding:"10px 12px",marginBottom:8}}><div><div style={{fontSize:11,color:MU,marginBottom:2}}>Karta raqami</div><div style={{fontSize:17,fontWeight:900,color:PR,letterSpacing:2}}>5614 6816 2464 5481</div></div><button onClick={()=>navigator.clipboard.writeText("5614681624645481").then(()=>alert("Nusxa olindi!"))} style={{background:LI,border:"none",borderRadius:8,padding:"8px 12px",color:PR,fontSize:12,fontWeight:700,cursor:"pointer"}}>📋</button></div><div style={{fontSize:13,color:CH}}><b>Egasi:</b> Voxidov Asadullobek</div></div>
+              <div style={{background:"#FFF3CD",borderRadius:12,padding:12,marginBottom:14,fontSize:13,color:"#856404"}}>
               <b>📋 To'lov tartibi:</b><br/>
-              1. Quyidagi tugmani bosing<br/>
-              2. Admin sizga hisobga to'lov ma'lumotlarini yuboradi<br/>
-              3. To'lagach, kirish kodi keladi<br/>
-              4. Kodni pastga kiriting → hafta ochiladi
+              1. Yuqoridagi kartaga 399 000 so'm o'tkazing<br/>
+              2. Quyidagi tugmani bosing<br/>
+              3. Kirish kodi Telegramga keladi<br/>
+              4. Kodni kiriting → hafta ochiladi
             </div>
 
             <button onClick={sendToTelegram} style={{width:"100%",padding:"15px",borderRadius:14,border:"none",background:"linear-gradient(135deg,#0088cc,#0055aa)",color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",marginBottom:10,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
-              <span>✈️</span> Admin bilan bog'lanish
+              <span>✈️</span> To'lov qildim — Admin bilan bog'lanish
             </button>
             <button onClick={onClose} style={{width:"100%",padding:"12px",borderRadius:12,border:"1px solid #E5E7EB",background:"transparent",color:MU,fontSize:14,cursor:"pointer"}}>
               Bekor qilish
