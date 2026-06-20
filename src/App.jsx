@@ -331,15 +331,21 @@ function PhoneLogin({ onSuccess }) {
   }, []);
 
   const sendOtp = async () => {
-    if (!recaptchaReady) { setErr("Iltimos reCAPTCHA ni belgilang ✓"); return; }
     setLoading(true); setErr("");
     try {
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+          size: "invisible",
+          callback: () => {},
+        });
+        await window.recaptchaVerifier.render();
+      }
       const confirmation = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
       confirmRef.current = confirmation;
       setStep("otp");
     } catch (e) {
-      setErr("Xatolik: " + (e.message || "Qayta urinib ko'ring"));
-      if (window.recaptchaVerifier) { window.recaptchaVerifier.clear(); window.recaptchaVerifier = null; setRecaptchaReady(false); }
+      setErr("Xatolik yuz berdi. Qayta urinib ko'ring");
+      if (window.recaptchaVerifier) { window.recaptchaVerifier.clear(); window.recaptchaVerifier = null; }
     }
     setLoading(false);
   };
@@ -397,12 +403,12 @@ function PhoneLogin({ onSuccess }) {
               {recaptchaReady && <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 8, padding: "8px 12px", marginBottom: 12, fontSize: 12, color: "#065F46", textAlign: "center" }}>✅ Tasdiqlandi!</div>}
               <button
                 onClick={sendOtp}
-                disabled={loading || !recaptchaReady}
+                disabled={loading}
                 style={{
                   width: "100%", padding: "14px", borderRadius: 12, border: "none",
-                  background: recaptchaReady ? "linear-gradient(135deg," + PR + "," + AC + ")" : "#E5E7EB",
-                  color: recaptchaReady ? "#fff" : MU, fontSize: 16, fontWeight: 700,
-                  cursor: recaptchaReady ? "pointer" : "default"
+                  background: "linear-gradient(135deg," + PR + "," + AC + ")",
+                  color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer",
+                  boxShadow: "0 4px 14px rgba(27,67,50,0.3)"
                 }}
               >
                 {loading ? "Yuborilmoqda..." : "📨 SMS Kod Yuborish"}
