@@ -4,7 +4,7 @@ const PR="#1B4332",AC="#52B788",CR="#F8F4EF",CH="#1C1C1E",MU="#6B7280",SU="#FFFF
 const GOALS=["Ozish","Semirish","Vazn saqlash","Mushak yig'ish","Sog'lomlashtirish"];
 const ACT_L=["Kam harakatli","O'rtacha faol","Faol","Juda faol"];
 
-const BOT_TOKEN = "8740349246:AAFcy9FbK3zdCPBWSkjxi9X5IRwPoZ8qaoI";
+const BOT_TOKEN = "8740349246:AAFO7546-gtIR1ACKagnL4Ib-P_Qgj2aIuY";
 const ADMIN_ID = "1364027533";
 const TG_ADMIN = "Alisher_111101";
 const NARX = 399000;
