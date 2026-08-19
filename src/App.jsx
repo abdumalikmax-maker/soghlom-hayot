@@ -6,6 +6,7 @@ const ACT_L=["Kam harakatli","O'rtacha faol","Faol","Juda faol"];
 
 const BOT_TOKEN = "8740349246:AAFcy9FbK3zdCPBWSkjxi9X5IRwPoZ8qaoI";
 const ADMIN_ID = "1364027533";
+const TG_ADMIN = "Alisher_111101";
 const NARX = 399000;
 
 const RATSIONLAR=[
@@ -300,6 +301,11 @@ function KodModal({hafta, profil, onClose, onKodKiritish}){
     }
   };
 
+  const chekYuborish = () => {
+    const matn = encodeURIComponent(`Assalomu alaykum! 🌿 Sog'lom Hayot\n${hafta+1}-hafta uchun ${NARX.toLocaleString()} so'm to'lov qildim.\nIsmim: ${profil.ism}\nChekni shu yerga yuboraman 👇`);
+    window.open(`https://t.me/${TG_ADMIN}?text=${matn}`, "_blank");
+  };
+
   const kodniTekshir = () => {
     if(kod.trim().length < 4){
       setXato("Kodni to'liq kiriting");
@@ -332,7 +338,7 @@ function KodModal({hafta, profil, onClose, onKodKiritish}){
               <div style={{background:"#FFF3CD",borderRadius:12,padding:12,marginBottom:14,fontSize:13,color:"#856404"}}>
               <b>📋 To'lov tartibi:</b><br/>
               1. Yuqoridagi kartaga 399 000 so'm o'tkazing<br/>
-              2. To'lov chekini <b>@BaniyatSafoo</b> ga yuboring<br/>
+              2. To'lov chekini <b>@{TG_ADMIN}</b> ga yuboring<br/>
               3. Admin tasdiqlaydi → kirish kodi keladi<br/>
               4. Kodni kiriting → hafta ochiladi
             </div>
@@ -349,8 +355,12 @@ function KodModal({hafta, profil, onClose, onKodKiritish}){
             <div style={{textAlign:"center",marginBottom:20}}>
               <div style={{fontSize:40,marginBottom:8}}>✅</div>
               <div style={{fontWeight:800,fontSize:18,color:PR}}>So'rov yuborildi!</div>
-              <div style={{fontSize:13,color:MU,marginTop:6,lineHeight:1.6}}>Admin tez orada siz bilan bog'lanadi va to'lov ma'lumotlarini yuboradi.</div>
+              <div style={{fontSize:13,color:MU,marginTop:6,lineHeight:1.6}}>Endi to'lov chekini Telegram orqali yuboring — admin tasdiqlagach kirish kodi keladi.</div>
             </div>
+
+            <button onClick={chekYuborish} style={{width:"100%",padding:"15px",borderRadius:14,border:"none",background:"linear-gradient(135deg,#0088cc,#0055aa)",color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",marginBottom:14,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+              <span>📸</span> Chekni Telegramda yuborish
+            </button>
 
             <div style={{background:"#F0FDF4",border:"1px solid #BBF7D0",borderRadius:12,padding:16,marginBottom:16}}>
               <div style={{fontSize:13,fontWeight:700,color:PR,marginBottom:10}}>🔑 Kirish kodingiz bormi?</div>
