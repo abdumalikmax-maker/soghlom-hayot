@@ -94,6 +94,7 @@ const BOT_TOKEN = "8740349246:AAFO7546-gtIR1ACKagnL4Ib-P_Qgj2aIuY";
 const HAFTA_COLORS = ["#1B4332","#1D4ED8","#7C3AED","#B45309"];
 const HAFTA_NOMS = ["1-hafta","2-hafta","3-hafta","4-hafta"];
 const HAFTA_PREFIX = ["SH1","SH2","SH3","SH4"];
+const NARX = 99000;
 let allUsers = [];
 let activeTab = "users";
 let yaratilganKodlar = [];
@@ -194,13 +195,20 @@ function renderUserCard(u){
   if(p.oshqozon) muammolar.push("🫁 Oshqozon");
   if(p.diabet) muammolar.push("🩸 Diabet");
   if(p.uyqusizlik) muammolar.push("😴 Uyqusizlik");
+  if(p.yurak) muammolar.push("🫀 Qon bosimi");
+  if(p.bogim) muammolar.push("🦴 Bo'g'im");
+  if(p.qalqonsimon) muammolar.push("🦋 Qalqonsimon");
+  if(p.stress) muammolar.push("😰 Stress");
+  if(p.ichqotish) muammolar.push("🚽 Ich qotishi");
+  if(p.homilador) muammolar.push("🤰 Homilador/emizish");
+  if(p.allergiya) muammolar.push("🌾 Allergiya: "+p.allergiya);
 
   return `
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
         <div>
           <div style="font-weight:800;font-size:16px;color:#1B4332">${p.ism||"Noma'lum"}</div>
-          <div style="font-size:11px;color:#6B7280;margin-top:2px">${u.sana} • ${p.jins} • ${p.yosh||"?"}yosh</div>
+          <div style="font-size:11px;color:#6B7280;margin-top:2px">${u.sana} • ${p.jins} • ${p.yosh||"?"}yosh${p.telefon?" • 📞 "+p.telefon:""}${p.uyqusoat?" • 😴 "+p.uyqusoat:""}</div>
         </div>
         <span class="badge ${u.ochikHaftalar.length>0?"active":"new"}">${u.ochikHaftalar.length>0?"Faol":"Yangi"}</span>
       </div>
@@ -229,6 +237,10 @@ function generateKod(haftaIdx){
   return prefix + raqam;
 }
 
+function tayyorXabar(kod, haftaNom){
+  return "✅ To'lovingiz qabul qilindi!\n\n🌿 Sog'lom Hayot\n📅 " + haftaNom + " uchun kirish kodi:\n\n🔑 " + kod + "\n\nSaytga kiring va \"To'lash va kod olish\" tugmasini bosib, ushbu kodni kiriting!\n\n🌐 soghlom-hayot.vercel.app";
+}
+
 function renderKodlar(){
   document.getElementById("mainContent").innerHTML = `
     <div class="sec-title">🔑 Kirish Kodi Yaratish</div>
@@ -240,7 +252,7 @@ function renderKodlar(){
       </div>
       ${[0,1,2,3].map(i=>`
         <button class="gen-btn" style="background:${HAFTA_COLORS[i]}" onclick="kodYarat(${i})">
-          🔑 ${HAFTA_NOMS[i]} uchun kod yaratish — 399 000 so'm
+          🔑 ${HAFTA_NOMS[i]} uchun kod yaratish — ${NARX.toLocaleString()} so'm
         </button>
       `).join("")}
     </div>
@@ -290,8 +302,9 @@ async function kodYarat(haftaIdx){
         <div class="kod-box">
           <div class="kod-text">${kod}</div>
         </div>
-        <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
-          <button class="copy-btn" onclick="navigator.clipboard.writeText('${kod}').then(()=>alert('Nusxa olindi!'))">📋 Nusxa olish</button>
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap">
+          <button class="copy-btn" onclick="navigator.clipboard.writeText('${kod}').then(()=>alert('Kod nusxa olindi!'))">📋 Faqat kod</button>
+          <button class="copy-btn" style="background:#52B788" onclick="navigator.clipboard.writeText(tayyorXabar('${kod}','${HAFTA_NOMS[haftaIdx]}')).then(()=>alert('✅ Tayyor xabar nusxalandi!\\nTelegramda mijozga paste qiling.'))">💬 Tayyor xabar</button>
           <button class="copy-btn" style="background:#0088cc" onclick="telegramYuborish('${kod}','${HAFTA_NOMS[haftaIdx]}')">✈️ Telegramga yuborish</button>
         </div>
         <div style="margin-top:10px;font-size:12px;color:#6B7280">
@@ -381,7 +394,7 @@ function renderSettings(){
     <div class="sec-title">⚙️ Sozlamalar</div>
     <div class="card" style="margin-bottom:12px">
       <div style="font-size:13px;font-weight:700;color:#1B4332;margin-bottom:10px">💰 Narx</div>
-      <div style="font-size:24px;font-weight:800;color:#1B4332;margin-bottom:6px">399 000 so'm</div>
+      <div style="font-size:24px;font-weight:800;color:#1B4332;margin-bottom:6px">99 000 so'm</div>
       <div style="font-size:12px;color:#6B7280">Narxni o'zgartirish uchun App.jsx dagi NARX o'zgaruvchisini tahrirlang</div>
     </div>
     <div class="card" style="margin-bottom:12px">
