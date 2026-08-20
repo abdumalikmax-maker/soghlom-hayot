@@ -3,11 +3,23 @@ import { useState, useEffect } from "react";
 const PR="#1B4332",AC="#52B788",CR="#F8F4EF",CH="#1C1C1E",MU="#6B7280",SU="#FFFFFF",LI="#E8F5EE",DA="#DC2626";
 const GOALS=["Ozish","Semirish","Vazn saqlash","Mushak yig'ish","Sog'lomlashtirish"];
 const ACT_L=["Kam harakatli","O'rtacha faol","Faol","Juda faol"];
+const UYQU_L=["6 soatdan kam","6-8 soat","8 soatdan ko'p"];
+const OVQAT_L=["1-2 marta","3-4 marta","5+ marta"];
+const MUAMMOLAR_L=[
+  ["oshqozon","🫁 Oshqozon"],
+  ["diabet","🩸 Diabet"],
+  ["uyqusizlik","😴 Uyqusizlik"],
+  ["yurak","🫀 Qon bosimi / yurak"],
+  ["bogim","🦴 Bo'g'im og'rig'i"],
+  ["qalqonsimon","🦋 Qalqonsimon bez"],
+  ["stress","😰 Stress / asab"],
+  ["ichqotish","🚽 Ich qotishi"],
+];
 
 const BOT_TOKEN = "8740349246:AAFO7546-gtIR1ACKagnL4Ib-P_Qgj2aIuY";
 const ADMIN_ID = "1364027533";
 const TG_ADMIN = "Alisher_111101";
-const NARX = 399000;
+const NARX = 99000;
 
 const RATSIONLAR=[
   {hafta:1,nom:"1-hafta — Boshlang'ich tozalash",rang:PR,tavsif:"Tana tozalanadi, yallig'lanish kamayadi.",
@@ -281,6 +293,20 @@ function ProgressTab(){
   );
 }
 
+// Himoya: vatermark — mijoz ismi va telefoni kontent ustida
+function Watermark({matn}){
+  const qatorlar=[0,1,2,3,4,5];
+  return(
+    <div style={{position:"absolute",top:0,left:0,right:0,bottom:0,pointerEvents:"none",overflow:"hidden",zIndex:5}}>
+      {qatorlar.map(i=>(
+        <div key={i} style={{position:"absolute",top:(i*17+4)+"%",left:i%2===0?"-5%":"25%",transform:"rotate(-22deg)",fontSize:14,fontWeight:800,color:"rgba(27,67,50,0.09)",whiteSpace:"nowrap",letterSpacing:1}}>
+          {matn} &nbsp;&nbsp;&nbsp; {matn}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // Kirish kodi modal
 function KodModal({hafta, profil, onClose, onKodKiritish}){
   const [kod, setKod] = useState("");
@@ -288,7 +314,7 @@ function KodModal({hafta, profil, onClose, onKodKiritish}){
   const [yuborildi, setYuborildi] = useState(false);
 
   const sendToTelegram = async () => {
-    const msg = `🆕 YANGI TO'LOV SO'ROVI\n\n👤 Ism: ${profil.ism}\n📅 Hafta: ${hafta+1}-hafta\n💰 Narx: ${NARX.toLocaleString()} so'm\n📱 Qurilma: ${navigator.userAgent.includes("iPhone")?"iPhone":"Android/Boshqa"}\n\n✅ To'lovni qabul qilib, foydalanuvchiga kirish kodi yuboring.`;
+    const msg = `🆕 YANGI TO'LOV SO'ROVI\n\n👤 Ism: ${profil.ism}\n📞 Tel: ${profil.telefon||"—"}\n📅 Hafta: ${hafta+1}-hafta\n💰 Narx: ${NARX.toLocaleString()} so'm\n📱 Qurilma: ${navigator.userAgent.includes("iPhone")?"iPhone":"Android/Boshqa"}\n\n✅ To'lovni qabul qilib, foydalanuvchiga kirish kodi yuboring.`;
     try {
       await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
         method: "POST",
@@ -316,7 +342,7 @@ function KodModal({hafta, profil, onClose, onKodKiritish}){
 
   return(
     <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.6)",zIndex:100,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
-      <div style={{background:SU,borderRadius:"20px 20px 0 0",padding:24,width:"100%",maxWidth:480}}>
+      <div style={{background:SU,borderRadius:"20px 20px 0 0",padding:24,width:"100%",maxWidth:480,maxHeight:"90vh",overflowY:"auto"}}>
 
         {!yuborildi ? (
           <>
@@ -337,7 +363,7 @@ function KodModal({hafta, profil, onClose, onKodKiritish}){
             <div style={{background:"#F0FDF4",border:"1px solid #BBF7D0",borderRadius:12,padding:14,marginBottom:12}}><div style={{fontSize:13,fontWeight:700,color:PR,marginBottom:10}}>💳 To'lov rekvizitlari:</div><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",background:SU,borderRadius:8,padding:"10px 12px",marginBottom:8}}><div><div style={{fontSize:11,color:MU,marginBottom:2}}>Karta raqami</div><div style={{fontSize:17,fontWeight:900,color:PR,letterSpacing:2}}>5614 6816 2464 5481</div></div><button onClick={()=>navigator.clipboard.writeText("5614681624645481").then(()=>alert("Nusxa olindi!"))} style={{background:LI,border:"none",borderRadius:8,padding:"8px 12px",color:PR,fontSize:12,fontWeight:700,cursor:"pointer"}}>📋</button></div><div style={{fontSize:13,color:CH}}><b>Egasi:</b> Voxidov Asadullobek</div></div>
               <div style={{background:"#FFF3CD",borderRadius:12,padding:12,marginBottom:14,fontSize:13,color:"#856404"}}>
               <b>📋 To'lov tartibi:</b><br/>
-              1. Yuqoridagi kartaga 399 000 so'm o'tkazing<br/>
+              1. Yuqoridagi kartaga {NARX.toLocaleString()} so'm o'tkazing<br/>
               2. To'lov chekini <b>@{TG_ADMIN}</b> ga yuboring<br/>
               3. Admin tasdiqlaydi → kirish kodi keladi<br/>
               4. Kodni kiriting → hafta ochiladi
@@ -388,11 +414,12 @@ function KodModal({hafta, profil, onClose, onKodKiritish}){
 }
 
 function ProfilSahifasi({onSave}){
-  const [form,setForm]=useState({ism:"",jins:"Erkak",yosh:"",boy:"",vazn:"",bel:"",faollik:ACT_L[1],maqsad:"Ozish",oshqozon:false,diabet:false,uyqusizlik:false});
+  const [form,setForm]=useState({ism:"",telefon:"",jins:"Erkak",yosh:"",boy:"",vazn:"",bel:"",faollik:ACT_L[1],maqsad:"Ozish",uyqusoat:UYQU_L[1],ovqatsoni:OVQAT_L[1],allergiya:"",oshqozon:false,diabet:false,uyqusizlik:false,yurak:false,bogim:false,qalqonsimon:false,stress:false,ichqotish:false,homilador:false});
   const [err,setErr]=useState("");
   const inp={width:"100%",padding:"12px 14px",borderRadius:10,border:"1.5px solid #E5E7EB",fontSize:15,color:CH,background:CR,outline:"none",boxSizing:"border-box",marginBottom:10};
   const save=()=>{
     if(!form.ism){setErr("Ismingizni kiriting");return;}
+    if(!form.telefon){setErr("Telefon raqamingizni kiriting");return;}
     localStorage.setItem("soghlom_profil",JSON.stringify(form));
     onSave(form);
   };
@@ -411,6 +438,7 @@ function ProfilSahifasi({onSave}){
             <div><div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:5}}>Jins</div><select style={{...inp,marginBottom:0}} value={form.jins} onChange={e=>setForm(p=>({...p,jins:e.target.value}))}><option>Erkak</option><option>Ayol</option></select></div>
           </div>
           <div style={{height:10}}/>
+          <div><div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:5}}>📞 Telefon raqam</div><input style={inp} type="tel" placeholder="+998 90 123 45 67" value={form.telefon} onChange={e=>setForm(p=>({...p,telefon:e.target.value}))}/></div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
             <div><div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:5}}>Yosh</div><input style={{...inp,marginBottom:0}} type="number" placeholder="28" value={form.yosh} onChange={e=>setForm(p=>({...p,yosh:e.target.value}))}/></div>
             <div><div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:5}}>Boy (sm)</div><input style={{...inp,marginBottom:0}} type="number" placeholder="175" value={form.boy} onChange={e=>setForm(p=>({...p,boy:e.target.value}))}/></div>
@@ -424,14 +452,28 @@ function ProfilSahifasi({onSave}){
           </div>
           <div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:8}}>Faollik darajasi</div>
           {ACT_L.map(a=><button key={a} onClick={()=>setForm(p=>({...p,faollik:a}))} style={{display:"block",width:"100%",marginBottom:6,padding:"9px 13px",borderRadius:9,border:"2px solid "+(form.faollik===a?PR:"#E5E7EB"),background:form.faollik===a?PR:SU,color:form.faollik===a?"#fff":CH,cursor:"pointer",fontSize:13,textAlign:"left"}}>{a}</button>)}
-          <div style={{fontSize:13,fontWeight:600,color:PR,marginBottom:8,marginTop:4}}>Muammolar bormi?</div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7,marginBottom:16}}>
-            {[["oshqozon","🫁 Oshqozon"],["diabet","🩸 Diabet"],["uyqusizlik","😴 Uyqusizlik"]].map(([k,l])=>(
-              <button key={k} onClick={()=>setForm(p=>({...p,[k]:!p[k]}))} style={{display:"flex",alignItems:"center",gap:6,padding:"9px 10px",borderRadius:9,border:"2px solid "+(form[k]?AC:"#E5E7EB"),background:form[k]?LI:SU,cursor:"pointer",fontSize:12,color:form[k]?PR:CH}}>
+          <div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:8,marginTop:4}}>😴 Kuniga necha soat uxlaysiz?</div>
+          <div style={{display:"flex",gap:7,flexWrap:"wrap",marginBottom:14}}>
+            {UYQU_L.map(u=><button key={u} onClick={()=>setForm(p=>({...p,uyqusoat:u}))} style={{padding:"8px 14px",borderRadius:20,border:"2px solid "+(form.uyqusoat===u?PR:"#E5E7EB"),background:form.uyqusoat===u?PR:SU,color:form.uyqusoat===u?"#fff":CH,cursor:"pointer",fontSize:13}}>{u}</button>)}
+          </div>
+          <div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:8}}>🍽️ Kuniga necha marta ovqatlanasiz?</div>
+          <div style={{display:"flex",gap:7,flexWrap:"wrap",marginBottom:14}}>
+            {OVQAT_L.map(o=><button key={o} onClick={()=>setForm(p=>({...p,ovqatsoni:o}))} style={{padding:"8px 14px",borderRadius:20,border:"2px solid "+(form.ovqatsoni===o?PR:"#E5E7EB"),background:form.ovqatsoni===o?PR:SU,color:form.ovqatsoni===o?"#fff":CH,cursor:"pointer",fontSize:13}}>{o}</button>)}
+          </div>
+          <div style={{fontSize:13,fontWeight:600,color:PR,marginBottom:8,marginTop:4}}>Sog'liq muammolari bormi?</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7,marginBottom:14}}>
+            {MUAMMOLAR_L.map(([k,l])=>(
+              <button key={k} onClick={()=>setForm(p=>({...p,[k]:!p[k]}))} style={{display:"flex",alignItems:"center",gap:6,padding:"9px 10px",borderRadius:9,border:"2px solid "+(form[k]?AC:"#E5E7EB"),background:form[k]?LI:SU,cursor:"pointer",fontSize:12,color:form[k]?PR:CH,textAlign:"left"}}>
                 <span>{form[k]?"✓":"○"}</span>{l}
               </button>
             ))}
+            {form.jins==="Ayol"&&(
+              <button onClick={()=>setForm(p=>({...p,homilador:!p.homilador}))} style={{display:"flex",alignItems:"center",gap:6,padding:"9px 10px",borderRadius:9,border:"2px solid "+(form.homilador?AC:"#E5E7EB"),background:form.homilador?LI:SU,cursor:"pointer",fontSize:12,color:form.homilador?PR:CH,textAlign:"left"}}>
+                <span>{form.homilador?"✓":"○"}</span>🤰 Homiladorlik / emizish
+              </button>
+            )}
           </div>
+          <div><div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:5}}>🌾 Allergiya bormi? (ixtiyoriy)</div><input style={inp} placeholder="Masalan: yong'oq, baliq..." value={form.allergiya} onChange={e=>setForm(p=>({...p,allergiya:e.target.value}))}/></div>
           <button onClick={save} style={{width:"100%",padding:"14px",borderRadius:13,border:"none",background:"linear-gradient(135deg,"+PR+","+AC+")",color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer"}}>
             ✅ Davom etish
           </button>
@@ -462,6 +504,23 @@ export default function App(){
   const [kodModal,setKodModal]=useState(null);
   const [kodXato,setKodXato]=useState("");
   const [kodMuvaffaq,setKodMuvaffaq]=useState("");
+  const [yashirin,setYashirin]=useState(false);
+
+  // Himoya: nusxalash va kontekst-menyuni bloklash, fonga o'tganda xiralashtirish
+  useEffect(()=>{
+    const stop=e=>e.preventDefault();
+    const fon=()=>setYashirin(document.hidden);
+    document.addEventListener("contextmenu",stop);
+    document.addEventListener("copy",stop);
+    document.addEventListener("cut",stop);
+    document.addEventListener("visibilitychange",fon);
+    return ()=>{
+      document.removeEventListener("contextmenu",stop);
+      document.removeEventListener("copy",stop);
+      document.removeEventListener("cut",stop);
+      document.removeEventListener("visibilitychange",fon);
+    };
+  },[]);
 
   useEffect(()=>{
     const saved=localStorage.getItem("soghlom_profil");
@@ -568,7 +627,7 @@ export default function App(){
         </div>
       </div>
 
-      <div style={{maxWidth:680,margin:"0 auto",padding:"16px 14px"}}>
+      <div style={{maxWidth:680,margin:"0 auto",padding:"16px 14px",filter:yashirin?"blur(25px)":"none",transition:"filter 0.2s"}}>
 
         {kodMuvaffaq&&<div style={{background:"#F0FDF4",border:"1px solid #BBF7D0",borderRadius:10,padding:"12px 16px",marginBottom:12,textAlign:"center",fontWeight:700,color:"#065F46",fontSize:14}}>{kodMuvaffaq}</div>}
 
@@ -608,7 +667,8 @@ export default function App(){
             </button>
           </div>
         ) : (
-          <>
+          <div style={{position:"relative",userSelect:"none",WebkitUserSelect:"none",WebkitTouchCallout:"none"}}>
+            <Watermark matn={`🌿 ${profile.ism}${profile.telefon?" • "+profile.telefon:""}`}/>
             <div style={{background:"linear-gradient(135deg,"+r.rang+","+r.rang+"CC)",borderRadius:14,padding:"14px 16px",marginBottom:14}}>
               <div style={{color:"#fff",fontWeight:800,fontSize:15,marginBottom:4}}>{r.nom}</div>
               <div style={{color:"rgba(255,255,255,0.85)",fontSize:12}}>{r.tavsif}</div>
@@ -625,7 +685,7 @@ export default function App(){
             {tab==="suv"&&<SuvTab/>}
             {tab==="nafas"&&<NafasTab/>}
             {tab==="progress"&&<ProgressTab/>}
-          </>
+          </div>
         )}
       </div>
     </div>
